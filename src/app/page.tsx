@@ -21,7 +21,14 @@ export default function Home() {
   // Positive value (e.g., 200) scrolls further right; negative value (e.g., -200) stops scrolling earlier.
   const HORIZONTAL_SCROLL_OFFSET_ADJUST = -35;
 
+  // CONTACT SECTION CONFIGURATION: Change this value to adjust the width percentage of inputs, buttons, and image card on all screens
+  const contactElementWidthPercent = "94%"; // Default is "85%". E.g. "70%", "80%", "90%", etc.
+
+  // FOR SCREENS < 361px: Forceful horizontal shift offset (e.g. "-10px", "5px", "0px") to shift the container left or right to visually center it
+  const contactSmallScreenShiftX = "-10px"; // E.g., "-15px" to shift left, "10px" to shift right
+
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [heroError, setHeroError] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
@@ -143,6 +150,16 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < 361);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const pathRef = useRef<SVGPathElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
   const horizontalPathRef = useRef<SVGPathElement>(null);
@@ -226,13 +243,28 @@ export default function Home() {
       setSwiped(true);
       await handleControls.start({ x: dragWidth, transition: { duration: 0.15, ease: "easeOut" } });
       
-      // Trigger liquid page transition
-      setIsTransitioning(true);
+      // Smoothly scroll to the contact section
+      const contactSection = document.getElementById("contact");
+      if (contactSection) {
+        contactSection.scrollIntoView({ behavior: "smooth" });
+      }
+      
+      // Reset the slider position back to 0
       setTimeout(() => {
-        setShowDevPage(true);
-      }, 1000);
+        setSwiped(false);
+        handleX.set(0);
+        handleControls.start({ x: 0, transition: { duration: 0.3 } });
+      }, 800);
     } else {
       handleControls.start({ x: 0, transition: { type: "spring", stiffness: 400, damping: 28 } });
+    }
+  };
+
+  const handleBuyNowClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const contactSection = document.getElementById("contact");
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -1198,7 +1230,7 @@ export default function Home() {
         {/* Right Side: Desktop CTA Button / Mobile Hamburger */}
         <div className="flex items-center gap-3">
           {/* Desktop CTA */}
-          <a href="#pricing" className="hidden md:flex items-center justify-center gap-2 bg-neutral-950 text-white rounded-[15px] h-[58px] px-7 text-[15.5px] font-extrabold shadow-clay-button hover:bg-neutral-900 transition-all duration-200 active:scale-[0.97] cursor-pointer">
+          <a href="#contact" onClick={handleBuyNowClick} className="hidden md:flex items-center justify-center gap-2 bg-neutral-950 text-white rounded-[15px] h-[58px] px-7 text-[15.5px] font-extrabold shadow-clay-button hover:bg-neutral-900 transition-all duration-200 active:scale-[0.97] cursor-pointer">
             <span>Buy now</span>
             <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] stroke-current fill-none text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="9" cy="21" r="1" fill="currentColor" />
@@ -1427,7 +1459,7 @@ export default function Home() {
               className="flex flex-row gap-3 w-full md:w-auto max-w-sm md:max-w-none justify-center md:justify-start mt-0 items-center mx-auto md:mx-0"
             >
               {/* Buy Now */}
-              <a href="#pricing" className="w-1/2 md:w-[175px] relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-neutral-950 text-white font-extrabold border border-neutral-950 shadow-clay-button hover:bg-neutral-900 transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] cursor-pointer origin-center">
+              <a href="#contact" onClick={handleBuyNowClick} className="w-1/2 md:w-[175px] relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-neutral-950 text-white font-extrabold border border-neutral-950 shadow-clay-button hover:bg-neutral-900 transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] cursor-pointer origin-center">
                 <div className="absolute left-[5px] top-[5px] bottom-[5px] aspect-square bg-white/10 md:bg-white/12 rounded-xl flex items-center justify-center">
                   <svg className="w-[18px] h-[18px] sm:w-[21px] sm:h-[21px] stroke-current fill-none text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                     <circle cx="9" cy="21" r="1" fill="currentColor" />
@@ -2066,7 +2098,7 @@ export default function Home() {
 
             {/* Bottom Row: CTA Button (Spans full width at the bottom of the card) */}
             <div className="w-full pt-4 border-t border-neutral-950/5">
-              <button className="w-full flex items-center justify-between bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase px-8 py-5 rounded-2xl transition-all duration-300 group shadow-lg shadow-black/10">
+              <button onClick={handleBuyNowClick} className="w-full flex items-center justify-between bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase px-8 py-5 rounded-2xl transition-all duration-300 group shadow-lg shadow-black/10 cursor-pointer">
                 <span>OnBoard Now</span>
                 <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
@@ -2166,7 +2198,7 @@ export default function Home() {
                         </div>
 
                         {/* Buy Now CTA Button */}
-                        <button className="w-full flex items-center justify-center bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 rounded-2xl transition-all duration-300 group shadow-md shadow-black/10">
+                        <button onClick={handleBuyNowClick} className="w-full flex items-center justify-center bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 rounded-2xl transition-all duration-300 group shadow-md shadow-black/10 cursor-pointer">
                           <span>Buy Now</span>
                         </button>
 
@@ -2268,11 +2300,16 @@ export default function Home() {
         <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
           
           {/* Left Column (renders on top on mobile / left on desktop): Dynamic Call booking Image */}
-          <div className="col-span-12 md:col-span-6 flex items-center justify-center w-full">
+          <div className="col-span-12 md:col-span-6 flex items-center justify-center md:justify-end w-full">
             <div 
               className="relative w-full rounded-[24px] overflow-hidden border border-white/60 bg-white/20 backdrop-blur-sm shadow-clay-card flex flex-col items-center justify-center text-center p-6 animate-none"
               style={{
-                aspectRatio: "16 / 9"
+                aspectRatio: "16 / 9",
+                minHeight: "180px",
+                width: contactElementWidthPercent,
+                maxWidth: "100%",
+                position: "relative",
+                left: isSmallScreen ? contactSmallScreenShiftX : "0px"
               }}
             >
               {!contactImageError ? (
@@ -2319,11 +2356,19 @@ export default function Home() {
           </div>
 
           {/* Right Column: Form */}
-          <div className="col-span-12 md:col-span-6 flex flex-col items-start text-left w-full">
-            <span className="text-[#2D3E24] font-black text-xs uppercase tracking-widest mb-2">
+          <div 
+            className="col-span-12 md:col-span-6 flex flex-col items-start text-left w-full mx-auto md:mx-0"
+            style={{ 
+              width: contactElementWidthPercent,
+              maxWidth: "100%",
+              position: "relative",
+              left: isSmallScreen ? contactSmallScreenShiftX : "0px"
+            }}
+          >
+            <span className="text-[#2D3E24] font-black text-xs uppercase tracking-widest mb-2 text-left w-full">
               Make your business premium now
             </span>
-            <h2 className="text-[28px] sm:text-[34px] font-black tracking-tight text-neutral-950 mb-6 leading-tight">
+            <h2 className="text-[22px] sm:text-[28px] md:text-[34px] font-black tracking-tight text-neutral-950 mb-6 leading-tight w-full text-left">
               Schedule a Call with the Experts
             </h2>
 
@@ -2337,7 +2382,7 @@ export default function Home() {
                   ✓
                 </div>
                 <h3 className="text-lg font-black text-neutral-950 mb-2">Request Received!</h3>
-                <p className="text-neutral-500 font-extrabold text-xs max-w-xs leading-relaxed">
+                <p className="text-neutral-500 font-extrabold text-xs max-w-xs w-full leading-relaxed">
                   Thanks {contactName} from {contactBusinessName} ({contactCity}). We'll call you on WhatsApp at +91 {contactWhatsApp} shortly.
                 </p>
                 <button 
@@ -2366,11 +2411,11 @@ export default function Home() {
                 className="w-full flex flex-col gap-5"
               >
                 {/* Name Input */}
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label htmlFor="contact-name" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase">
+                <div className="flex flex-col gap-1.5 w-full items-start text-left">
+                  <label htmlFor="contact-name" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase text-left w-full">
                     Your Name
                   </label>
-                  <div className="relative flex items-center w-full">
+                  <div className="relative w-full">
                     {/* Rounded black div with profile/user icon */}
                     <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
                       <svg className="w-[18px] h-[18px] fill-none stroke-current text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -2391,18 +2436,18 @@ export default function Home() {
                 </div>
 
                 {/* WhatsApp Number Input */}
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label htmlFor="contact-whatsapp" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase">
+                <div className="flex flex-col gap-1.5 w-full items-start text-left">
+                  <label htmlFor="contact-whatsapp" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase text-left w-full">
                     WhatsApp Number
                   </label>
-                  <div className="relative flex items-center w-full">
+                  <div className="relative w-full">
                     {/* Rounded black div with WhatsApp logo */}
-                    <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
+                    <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm z-10">
                       <svg className="w-[18px] h-[18px] fill-current text-white" viewBox="0 0 24 24">
                         <path d="M12.031 2C6.49 2 2 6.49 2 12.03c0 1.916.536 3.708 1.464 5.253L2 22l4.896-1.282c1.478.807 3.167 1.282 4.966 1.282C17.57 22 22 17.51 22 11.97 22 6.49 17.57 2 12.03 2zm4.335 13.916c-.226.634-1.3 1.238-1.808 1.32-.472.075-1.079.132-3.14-.726-2.632-1.094-4.302-3.793-4.434-3.969-.132-.176-1.079-1.433-1.079-2.736 0-1.302.68-1.943.925-2.207.245-.264.547-.33.725-.33.176 0 .356.006.509.013.162.006.384-.063.597.453.226.547.774 1.887.843 2.025.069.138.113.302.019.49-.094.188-.145.302-.289.471-.145.17-.308.384-.44.516-.151.15-.31.314-.132.616.176.302.78 1.283 1.673 2.075.918.818 1.692 1.076 1.993 1.226.302.151.478.126.66-.088.183-.214.774-.906.981-1.214.208-.308.415-.258.698-.151.283.107 1.792.843 2.1.993.308.15.515.226.59.358.076.132.076.761-.15 1.396z" />
                       </svg>
                     </div>
-                    <span className="absolute left-[56px] text-sm font-extrabold text-neutral-400 select-none">
+                    <span className="absolute left-[56px] top-1/2 -translate-y-1/2 text-sm font-extrabold text-neutral-400 select-none z-10">
                       +91
                     </span>
                     <input
@@ -2419,11 +2464,11 @@ export default function Home() {
                 </div>
 
                 {/* Business Name Input */}
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label htmlFor="contact-business" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase">
+                <div className="flex flex-col gap-1.5 w-full items-start text-left">
+                  <label htmlFor="contact-business" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase text-left w-full">
                     Business Name
                   </label>
-                  <div className="relative flex items-center w-full">
+                  <div className="relative w-full">
                     {/* Rounded black div with briefcase icon */}
                     <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
                       <svg className="w-[18px] h-[18px] fill-none stroke-current text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -2444,11 +2489,11 @@ export default function Home() {
                 </div>
 
                 {/* City Input */}
-                <div className="flex flex-col gap-1.5 w-full">
-                  <label htmlFor="contact-city" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase">
+                <div className="flex flex-col gap-1.5 w-full items-start text-left">
+                  <label htmlFor="contact-city" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase text-left w-full">
                     City
                   </label>
-                  <div className="relative flex items-center w-full">
+                  <div className="relative w-full">
                     {/* Rounded black div with location pin icon */}
                     <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
                       <svg className="w-[18px] h-[18px] fill-none stroke-current text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -2469,8 +2514,8 @@ export default function Home() {
                 </div>
 
                 {/* Suggestions / Interests */}
-                <div className="flex flex-col gap-2.5 w-full mt-1">
-                  <span className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase">
+                <div className="flex flex-col gap-2.5 w-full mt-1 items-start text-left">
+                  <span className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase text-left w-full">
                     I am interested in...
                   </span>
                   <div className="flex flex-wrap gap-2 w-full">
@@ -2486,7 +2531,7 @@ export default function Home() {
                           key={interest}
                           type="button"
                           onClick={() => toggleInterest(interest)}
-                          className={`px-3.5 py-2.5 rounded-xl border text-[11.5px] sm:text-xs font-black cursor-pointer transition-all duration-200 hover:scale-[0.97] active:scale-[0.94] ${
+                          className={`flex-shrink-0 px-3.5 py-2.5 rounded-xl border text-[11.5px] font-black cursor-pointer transition-all duration-200 hover:scale-[0.97] active:scale-[0.94] flex items-center justify-center text-center ${
                             isSelected
                               ? "bg-neutral-950 text-white border-neutral-950 shadow-sm"
                               : "bg-white/60 text-neutral-600 border-[#e5e5e0] hover:bg-neutral-100/50 hover:text-neutral-800"
