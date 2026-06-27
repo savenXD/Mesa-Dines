@@ -42,6 +42,17 @@ export default function Home() {
   const handleControls = useAnimation();
   const handleX = useMotionValue(0);
 
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showDevPage, setShowDevPage] = useState(false);
+
+  const handleBack = () => {
+    setShowDevPage(false);
+    setIsTransitioning(false);
+    // Reset swipe handle
+    handleControls.start({ x: 0, transition: { duration: 0.5, ease: "easeInOut" } });
+    setSwiped(false);
+  };
+
   useEffect(() => {
     const updateWidth = () => {
       if (trackRef.current && handleRef.current) {
@@ -66,11 +77,11 @@ export default function Home() {
       setSwiped(true);
       await handleControls.start({ x: dragWidth, transition: { duration: 0.15, ease: "easeOut" } });
       
-      // Simulate action (e.g. redirect or confirmation popup)
-      setTimeout(async () => {
-        await handleControls.start({ x: 0, transition: { duration: 0.4, ease: "easeInOut" } });
-        setSwiped(false);
-      }, 2500);
+      // Trigger liquid page transition
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setShowDevPage(true);
+      }, 1000);
     } else {
       handleControls.start({ x: 0, transition: { type: "spring", stiffness: 400, damping: 28 } });
     }
@@ -203,6 +214,7 @@ export default function Home() {
     let tl: gsap.core.Tween | null = null;
     let resizeHandler: (() => void) | null = null;
     let frameId: number | null = null;
+    const cardTriggers: any[] = [];
 
     const path = pathRef.current;
     const container = featuresRef.current;
@@ -322,6 +334,18 @@ export default function Home() {
         // Force ScrollTrigger to compute coordinates immediately
         ScrollTrigger.refresh();
 
+        // ScrollTrigger for each card highlight
+        const cards = container.querySelectorAll(".feature-card-scroll");
+        cards.forEach((card) => {
+          const trigger = ScrollTrigger.create({
+            trigger: card,
+            start: "top 60%",
+            end: "bottom 40%",
+            toggleClass: "feature-card-active"
+          });
+          cardTriggers.push(trigger);
+        });
+
         resizeHandler = () => {
           if (computeSamples()) {
             ScrollTrigger.refresh();
@@ -335,14 +359,15 @@ export default function Home() {
       frameId = requestAnimationFrame(initPath);
     }
 
-    return () => {
-      if (frameId) cancelAnimationFrame(frameId);
-      if (resizeHandler) window.removeEventListener("resize", resizeHandler);
-      if (tl) {
-        tl.scrollTrigger?.kill();
-        tl.kill();
-      }
-    };
+      return () => {
+        if (frameId) cancelAnimationFrame(frameId);
+        if (resizeHandler) window.removeEventListener("resize", resizeHandler);
+        if (tl) {
+          tl.scrollTrigger?.kill();
+          tl.kill();
+        }
+        cardTriggers.forEach((t) => t.kill());
+      };
   }, []);
 
   // Split heading text for staggered entry
@@ -556,7 +581,7 @@ export default function Home() {
 
       {/* HERO SECTION */}
       <main className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-10 pt-2 pb-12 md:pb-16 flex flex-col items-center flex-grow">
-        <div className="grid grid-cols-12 w-full gap-y-6 md:gap-y-8 gap-x-8 md:gap-x-12 lg:gap-x-16 items-center mt-6 md:mt-10">
+        <div className="flex flex-col md:grid md:grid-cols-12 w-full gap-y-6 md:gap-y-8 gap-x-8 md:gap-x-12 lg:gap-x-16 items-center mt-6 md:mt-10">
           
           {/* Text Column: Heading & Subheading */}
           <div className="col-span-12 md:col-span-7 order-1 flex flex-col items-center md:items-start text-center md:text-left w-full">
@@ -569,7 +594,7 @@ export default function Home() {
             >
               {/* Line 1 */}
               <h1 className="text-[clamp(15px,9.3vw,44px)] sm:text-[46px] md:text-[52px] lg:text-[56px] xl:text-[60px] font-black tracking-tight text-[#111111] leading-[1.12] w-full text-center md:text-left">
-                <span className="block w-full whitespace-nowrap text-center md:text-left">
+                <span className="block w-full md:whitespace-nowrap text-center md:text-left">
                   {headingWords
                     .filter((w) => w.line === 1)
                     .map((w, idx, arr) => (
@@ -585,7 +610,7 @@ export default function Home() {
                 </span>
 
                 {/* Line 2 */}
-                <span className="block w-full whitespace-nowrap text-center md:text-left mt-0.5 sm:mt-1.5">
+                <span className="block w-full md:whitespace-nowrap text-center md:text-left mt-0.5 sm:mt-1.5">
                   {headingWords
                     .filter((w) => w.line === 2)
                     .map((w, idx, arr) => (
@@ -698,10 +723,10 @@ export default function Home() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.1, duration: 0.5, ease: "easeOut" }}
-              className="flex flex-row gap-3.5 w-[95%] sm:w-[90%] md:w-auto max-w-none md:max-w-md justify-center md:justify-start mt-0"
+              className="flex flex-row gap-3 w-full md:w-auto max-w-sm md:max-w-none justify-center md:justify-start mt-0 items-center mx-auto md:mx-0"
             >
               {/* Watch 2-minute demo */}
-              <button className="w-full md:w-[175px] flex-grow flex-1 md:flex-initial relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-neutral-950 text-white font-extrabold border border-neutral-950 shadow-clay-button hover:bg-neutral-900 transition-all duration-200 cursor-pointer active:scale-[0.98]">
+              <button className="w-1/2 md:w-[175px] relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-neutral-950 text-white font-extrabold border border-neutral-950 shadow-clay-button hover:bg-neutral-900 transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] cursor-pointer origin-center">
                 <div className="absolute left-[5px] top-[5px] bottom-[5px] aspect-square bg-white/10 md:bg-white/12 rounded-xl flex items-center justify-center">
                   <svg className="w-[18px] h-[18px] sm:w-[21px] sm:h-[21px] fill-current text-white" viewBox="0 0 24 24">
                     <path d="M8 5.14v14l11-7-11-7z" />
@@ -711,13 +736,19 @@ export default function Home() {
               </button>
 
               {/* Book Call */}
-              <button className="w-full md:w-[175px] flex-grow flex-1 md:flex-initial relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-white md:bg-transparent text-neutral-950 font-extrabold border border-[#e5e5e0] md:border-neutral-950 shadow-clay-card md:shadow-none hover:bg-neutral-50 md:hover:bg-black/[0.02] transition-all duration-200 cursor-pointer active:scale-[0.98]">
-                <div className="absolute left-[5px] top-[5px] bottom-[5px] aspect-square bg-[#25D366] rounded-xl flex items-center justify-center shadow-sm">
-                  <svg className="w-[18px] h-[18px] sm:w-[21px] sm:h-[21px] fill-current text-white" viewBox="0 0 24 24">
+              <button className="group w-1/2 md:w-[175px] relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-white text-neutral-950 font-extrabold border border-[#e5e5e0] shadow-clay-card cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] origin-center">
+                {/* Liquid Fill background element */}
+                <div className="absolute inset-0 bg-[#25D366] origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-700 ease-[cubic-bezier(0.19,1,0.22,1)]" />
+                
+                {/* Icon Container */}
+                <div className="absolute left-[5px] top-[5px] bottom-[5px] aspect-square bg-[#25D366] group-hover:bg-white rounded-xl flex items-center justify-center shadow-sm z-10 transition-colors duration-500">
+                  <svg className="w-[18px] h-[18px] sm:w-[21px] sm:h-[21px] fill-current text-white group-hover:text-[#25D366] transition-colors duration-500" viewBox="0 0 24 24">
                     <path d="M12.031 2C6.49 2 2 6.49 2 12.03c0 1.916.536 3.708 1.464 5.253L2 22l4.896-1.282c1.478.807 3.167 1.282 4.966 1.282C17.57 22 22 17.51 22 11.97 22 6.49 17.57 2 12.03 2zm4.335 13.916c-.226.634-1.3 1.238-1.808 1.32-.472.075-1.079.132-3.14-.726-2.632-1.094-4.302-3.793-4.434-3.969-.132-.176-1.079-1.433-1.079-2.736 0-1.302.68-1.943.925-2.207.245-.264.547-.33.725-.33.176 0 .356.006.509.013.162.006.384-.063.597.453.226.547.774 1.887.843 2.025.069.138.113.302.019.49-.094.188-.145.302-.289.471-.145.17-.308.384-.44.516-.151.15-.31.314-.132.616.176.302.78 1.283 1.673 2.075.918.818 1.692 1.076 1.993 1.226.302.151.478.126.66-.088.183-.214.774-.906.981-1.214.208-.308.415-.258.698-.151.283.107 1.792.843 2.1.993.308.15.515.226.59.358.076.132.076.761-.15 1.396z" />
                   </svg>
                 </div>
-                <span className="w-full text-center pl-8 md:pl-10 text-[13.5px] sm:text-[14.5px] md:text-[15px] tracking-wide whitespace-nowrap">Book Call</span>
+                
+                {/* Text Span */}
+                <span className="relative z-10 w-full text-center pl-8 md:pl-10 text-[13.5px] sm:text-[14.5px] md:text-[15px] tracking-wide whitespace-nowrap text-neutral-950 group-hover:text-white transition-colors duration-500">Book Call</span>
               </button>
             </motion.div>
           </div>
@@ -791,15 +822,12 @@ export default function Home() {
 
           {/* 4 Feature Items */}
           {features.map((feat, index) => {
-            const isEven = index % 2 === 1;
             return (
               <div
                 key={index}
-                className={`relative w-full sm:w-[45%] md:w-full z-20 ${
-                  isEven ? "self-end" : "self-start"
-                }`}
+                className="relative w-full max-w-[540px] md:max-w-none mx-auto md:mx-0 z-20"
               >
-                <div className={`w-full bg-[#fafaf9] rounded-[28px] p-6 sm:p-8 shadow-clay-card border border-[#e5e5e0] flex flex-col items-start text-left md:bg-transparent md:border-none md:shadow-none md:p-0 md:items-center md:gap-16 ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
+                <div className={`feature-card-scroll w-full bg-white md:bg-transparent rounded-[28px] p-6 sm:p-8 md:p-8 border border-[#e5e5e0] md:border-transparent transition-all duration-700 ease-out flex flex-col items-start text-left md:items-center md:gap-16 ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
                   {/* Image Container with overlapping Badge */}
                   <div 
                     className="relative w-full max-w-[340px] rounded-[20px] overflow-visible mb-6 md:mb-0 md:w-[480px] md:max-w-[480px] md:flex-shrink-0"
@@ -869,30 +897,15 @@ export default function Home() {
             {/* Swipe Guidance Text */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
               <AnimatePresence mode="wait">
-                {!swiped ? (
-                  <motion.span 
-                    key="swipe-prompt"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="text-neutral-300 font-extrabold text-[13.5px] sm:text-[14.5px] tracking-wide"
-                  >
-                    Swipe to Buy @just ₹999
-                  </motion.span>
-                ) : (
-                  <motion.div
-                    key="success-prompt"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center gap-2 text-[#25D366]"
-                  >
-                    <svg className="w-5 h-5 fill-none stroke-current" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    <span className="font-extrabold text-[14px] sm:text-[15px] tracking-wide">Delightful! Order Confirmed</span>
-                  </motion.div>
-                )}
+                <motion.span 
+                  key="swipe-prompt"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-neutral-300 font-extrabold text-[13.5px] sm:text-[14.5px] tracking-wide"
+                >
+                  Swipe to Buy @just ₹999
+                </motion.span>
               </AnimatePresence>
             </div>
 
@@ -933,6 +946,50 @@ export default function Home() {
           </div>
         </div>
       </motion.div>
+
+      {/* Expanding Liquid transition circle */}
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={isTransitioning ? { scale: 1.8 } : { scale: 0 }}
+        transition={{ duration: 1.4, ease: [0.76, 0, 0.24, 1] }}
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[120vmax] h-[120vmax] bg-neutral-950 rounded-full z-50 pointer-events-none origin-center"
+        style={{ y: "50%" }}
+      />
+
+      {/* In Development Fullscreen Screen */}
+      <AnimatePresence>
+        {showDevPage && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 bg-neutral-950 z-50 flex flex-col items-center justify-center text-white select-none"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -25 }}
+              transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+              className="text-center flex flex-col items-center gap-5 px-6"
+            >
+              <h1 className="text-[32px] md:text-[54px] font-black tracking-wider uppercase text-white leading-none">
+                In Development
+              </h1>
+              <p className="text-neutral-400 font-extrabold text-[12.5px] md:text-[15px] max-w-sm leading-relaxed tracking-wide">
+                We are building a premium dining experience. Check back soon for the final launch.
+              </p>
+              {/* Back Button */}
+              <button 
+                onClick={handleBack}
+                className="mt-8 px-8 py-4 rounded-2xl border border-white/20 text-[14.5px] font-extrabold text-white hover:bg-white hover:text-black transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] cursor-pointer origin-center shadow-lg"
+              >
+                Go Back
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

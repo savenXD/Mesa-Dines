@@ -39,3 +39,7 @@ body {
   stroke-dashoffset: 1000;
 }
 
+.feature-card-active {
+  border-color: #111111 !important;
+}
+
