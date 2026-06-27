@@ -17,10 +17,15 @@ export default function Home() {
   const featureImageSize = 480; // Maximum width in pixels for the process images on desktop
   const featureImageAspectRatio = 0.75; // Aspect ratio of features images (height / width)
 
+  // HORIZONTAL SCROLL CONFIGURATION: Adjust this value to manually increase or decrease the horizontal scroll length.
+  // Positive value (e.g., 200) scrolls further right; negative value (e.g., -200) stops scrolling earlier.
+  const HORIZONTAL_SCROLL_OFFSET_ADJUST = -35;
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [heroError, setHeroError] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
   const pathRef = useRef<SVGPathElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -256,6 +261,21 @@ export default function Home() {
           )
         }
       ]
+    },
+    {
+      titleLine1: "Lowest",
+      titleLine2: "Price",
+      floaters: [
+        {
+          className: "top-4 right-4 md:top-6 md:right-6 w-14 h-14 md:w-16 md:h-16 bg-neutral-900 border border-white/10 rounded-2xl flex items-center justify-center p-3.5 shadow-lg shadow-black/40 animate-float-slow floating-element",
+          svg: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+              <line x1="7" y1="7" x2="7.01" y2="7" />
+            </svg>
+          )
+        }
+      ]
     }
   ];
 
@@ -285,6 +305,35 @@ export default function Home() {
     let resizeHandler: (() => void) | null = null;
     let frameId: number | null = null;
     const cardTriggers: any[] = [];
+
+    const getScrollWidth = () => {
+      try {
+        const width = typeof window !== "undefined" ? window.innerWidth : 1200;
+        let wavyWidth = 1100;
+        let cardWidth = 290;
+        let gap = 32;
+        let padding = width * 0.2;
+        
+        if (width >= 768) {
+          wavyWidth = 1750;
+          cardWidth = 420;
+          gap = 64;
+          padding = width * 0.5;
+        } else if (width >= 640) {
+          wavyWidth = 1400;
+          cardWidth = 350;
+          gap = 32;
+          padding = width * 0.2;
+        }
+        
+        // 1 wavy text + 4 cards = 5 elements -> 5 gaps + left padding + viewport width + custom manual offset adjustment
+        const totalTrackWidth = wavyWidth + (4 * cardWidth) + (5 * gap) + (padding / 2) + width + HORIZONTAL_SCROLL_OFFSET_ADJUST;
+        return totalTrackWidth;
+      } catch (e) {
+        console.error("Error in getScrollWidth:", e);
+        return 5000;
+      }
+    };
 
     const path = pathRef.current;
     const container = featuresRef.current;
@@ -432,8 +481,45 @@ export default function Home() {
         });
 
         resizeHandler = () => {
-          if (computeSamples()) {
-            ScrollTrigger.refresh();
+          try {
+            if (computeSamples()) {
+              // Recalculate horizontal path d attribute and stroke properties on resize
+              if (hzPath) {
+                const width = typeof window !== "undefined" ? window.innerWidth : 1200;
+                let wavyWidth = 1100;
+                let paddingLeft = width * 0.1;
+                if (width >= 768) {
+                  wavyWidth = 1750;
+                  paddingLeft = width * 0.25;
+                } else if (width >= 640) {
+                  wavyWidth = 1400;
+                  paddingLeft = width * 0.1;
+                }
+                const scrollWidth = getScrollWidth();
+                const svgScrollWidth = scrollWidth * (1750 / wavyWidth);
+                const svgPaddingLeft = paddingLeft * (1750 / wavyWidth);
+                
+                let dPath = `M ${-svgPaddingLeft},250 L 50,250 Q 450,30 875,250 T 1700,250`;
+                let currentX = 1700;
+                const waveSpacing = 825;
+                while (currentX < svgScrollWidth + waveSpacing) {
+                  currentX += waveSpacing;
+                  dPath += ` T ${currentX},250`;
+                }
+                hzPath.setAttribute("d", dPath);
+
+                const pathLength = hzPath.getTotalLength();
+                gsap.set(hzPath, {
+                  strokeDasharray: pathLength,
+                  attr: {
+                    "stroke-dasharray": pathLength
+                  }
+                });
+              }
+              ScrollTrigger.refresh();
+            }
+          } catch (e) {
+            console.error("Error in resize handler:", e);
           }
         };
 
@@ -474,8 +560,8 @@ export default function Home() {
             padding = width * 0.2;
           }
           
-          // 1 wavy text + 4 cards = 5 elements -> 4 gaps + 1800px scroll buffer to ensure all elements scroll fully into view
-          const totalTrackWidth = wavyWidth + (4 * cardWidth) + (4 * gap) + padding + 1800;
+          // 1 wavy text + 4 cards = 5 elements -> 5 gaps + left padding + viewport width + custom manual offset adjustment
+          const totalTrackWidth = wavyWidth + (4 * cardWidth) + (5 * gap) + (padding / 2) + width + HORIZONTAL_SCROLL_OFFSET_ADJUST;
           return totalTrackWidth;
         } catch (e) {
           console.error("Error in getScrollWidth:", e);
@@ -520,14 +606,25 @@ export default function Home() {
       if (hzPath) {
         try {
           const width = typeof window !== "undefined" ? window.innerWidth : 1200;
-          const scrollWidth = getScrollWidth();
-          let dPath = "";
+          let wavyWidth = 1100;
+          let paddingLeft = width * 0.1;
           if (width >= 768) {
-            dPath = `M 0,390 Q 450,170 875,390 T 1700,390 L ${scrollWidth},390`;
+            wavyWidth = 1750;
+            paddingLeft = width * 0.25;
           } else if (width >= 640) {
-            dPath = `M 0,320 Q 350,140 700,320 T 1350,320 L ${scrollWidth},320`;
-          } else {
-            dPath = `M 0,250 Q 275,100 550,250 T 1050,250 L ${scrollWidth},250`;
+            wavyWidth = 1400;
+            paddingLeft = width * 0.1;
+          }
+          const scrollWidth = getScrollWidth();
+          const svgScrollWidth = scrollWidth * (1750 / wavyWidth);
+          const svgPaddingLeft = paddingLeft * (1750 / wavyWidth);
+          
+          let dPath = `M ${-svgPaddingLeft},250 L 50,250 Q 450,30 875,250 T 1700,250`;
+          let currentX = 1700;
+          const waveSpacing = 825;
+          while (currentX < svgScrollWidth + waveSpacing) {
+            currentX += waveSpacing;
+            dPath += ` T ${currentX},250`;
           }
           hzPath.setAttribute("d", dPath);
 
@@ -560,7 +657,8 @@ export default function Home() {
                   return "+=3000";
                 }
               },
-              scrub: true
+              scrub: true,
+              invalidateOnRefresh: true
             }
           });
         } catch (e) {
@@ -693,6 +791,104 @@ export default function Home() {
       },
     }),
   };
+
+  const pricingFeatures = [
+    { text: "QR Scan & Order System", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+      </svg>
+    )},
+    { text: "Fully Personalized Digital Menu", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+        <path d="M6 6h10M6 10h10" />
+      </svg>
+    )},
+    { text: "Custom Branding (Logo & Colors)", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
+        <path d="M7.5 10.5C8.32843 10.5 9 9.82843 9 9C9 8.17157 8.32843 7.5 7.5 7.5C6.67157 7.5 6 8.17157 6 9C6 9.82843 6.67157 10.5 7.5 10.5Z" />
+        <path d="M11.5 7.5C12.3284 7.5 13 6.82843 13 6C13 5.17157 12.3284 4.5 11.5 4.5C10.6716 4.5 10 5.17157 10 6C10 6.82843 10.6716 7.5 11.5 7.5Z" />
+        <path d="M16.5 9.5C17.3284 9.5 18 8.82843 18 8C18 7.17157 17.3284 6.5 16.5 6.5C15.6716 6.5 15 7.17157 15 8C15 8.82843 15.6716 9.5 16.5 9.5Z" />
+      </svg>
+    )},
+    { text: "Customized for Your Café", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+        <line x1="6" y1="2" x2="6" y2="4" />
+        <line x1="10" y1="2" x2="10" y2="4" />
+        <line x1="14" y1="2" x2="14" y2="4" />
+      </svg>
+    )},
+    { text: "Live Kitchen Order Dashboard", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M9 3v18M3 9h18" />
+      </svg>
+    )},
+    { text: "Real-Time Order Alerts", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+    )},
+    { text: "Integrated UPI Payments", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <rect x="2" y="5" width="20" height="14" rx="2" />
+        <line x1="2" y1="10" x2="22" y2="10" />
+      </svg>
+    )},
+    { text: "AI Google Review Booster", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+    )},
+    { text: "Customer Feedback & Complaints", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    )},
+    { text: "Sales & Order Analytics", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    )},
+    { text: "Instant Menu Management", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+      </svg>
+    )},
+    { text: "Works on Any Smartphone", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+        <line x1="12" y1="18" x2="12.01" y2="18" />
+      </svg>
+    )},
+    { text: "Unlimited Orders & Tables", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4z" />
+      </svg>
+    )},
+    { text: "WhatsApp & Call Support", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+      </svg>
+    )},
+    { text: "Free Setup & Onboarding", icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+        <path d="M4.5 16.5c-1.5 1.26-2 2.5-2 3.5s.5 2 2 2c1.26 0 2.5-.5 3.5-2" />
+        <path d="M12 15l-3-3m3 3l3-3m-3 3V9" />
+        <path d="M22 2L12 12" />
+        <path d="M22 2l-6 15-3-3-3-3 15-6z" />
+      </svg>
+    )}
+  ];
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden flex flex-col items-center select-none">
@@ -1193,28 +1389,27 @@ export default function Home() {
                 ref={horizontalTrackRef} 
                 className="flex flex-row flex-nowrap gap-8 md:gap-16 px-[10vw] md:px-[25vw] min-w-max items-center relative"
               >
-                {/* Dynamic SVG Animated Line underlaying the track */}
-                <div className="absolute inset-0 pointer-events-none z-10 overflow-visible">
-                  <svg className="w-full h-full overflow-visible" fill="none">
-                    <path
-                      ref={horizontalPathRef}
-                      stroke="#111111"
-                      strokeWidth="6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  </svg>
-                </div>
-                {/* GIANT CURVY INTRO TEXT (I MEAN, WHY NOT?) */}
-                <div className="w-[1100px] sm:w-[1400px] md:w-[1750px] h-[350px] sm:h-[450px] md:h-[550px] flex-shrink-0 select-none pointer-events-none flex items-center justify-center">
-                  <svg viewBox="0 0 1750 500" className="w-full h-full text-[#0a0a0a] fill-current">
+                {/* GIANT CURVY INTRO TEXT WITH INTEGRATED ANIMATED LINE */}
+                <div className="w-[1100px] sm:w-[1400px] md:w-[1750px] h-[350px] sm:h-[450px] md:h-[550px] flex-shrink-0 select-none pointer-events-none flex items-center justify-center overflow-visible">
+                  <svg viewBox="0 0 1750 500" className="w-full h-full text-[#0a0a0a] fill-current overflow-visible">
                     <defs>
                       <path 
                         id="wavy-text-path" 
                         d="M 50,250 Q 450,30 875,250 T 1700,250" 
                       />
                     </defs>
+                    
+                    {/* CURVY ANIMATED LINE (First element, so it underlays the text) */}
+                    <path
+                      ref={horizontalPathRef}
+                      stroke="#111111"
+                      strokeWidth="6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                      transform="translate(0, 135)"
+                    />
+
                     <text 
                       fontSize="145" 
                       fontWeight="900" 
@@ -1262,12 +1457,237 @@ export default function Home() {
                     </div>
                   );
                 })}
+
               </div>
             </div>
 
           </div>
         </section>
       </div>
+
+      {/* SIMPLE, FLAT PRICING SECTION */}
+      <section className="w-full py-20 bg-transparent flex flex-col items-center justify-center px-6 relative overflow-hidden z-20 border-t border-neutral-100">
+        
+        {/* Section Header */}
+        <div className="flex flex-col items-center text-center w-full max-w-xl mb-12">
+          <span className="text-neutral-400 font-black text-xs uppercase tracking-widest mb-1.5">
+            Plans & Add-ons
+          </span>
+          <h2 className="text-[32px] sm:text-[40px] md:text-[46px] font-black tracking-tight text-neutral-950 leading-tight relative overflow-visible inline-block">
+            <span className="relative inline-block">
+              Simple, Flat Pricing
+              <span className="absolute left-0 -bottom-2 w-full pointer-events-none">
+                <svg
+                  width="100%"
+                  height="12"
+                  viewBox="0 0 200 12"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="overflow-visible"
+                >
+                  <motion.path
+                    d="M4 8.5C40 4.5 130 4 196 8.5"
+                    stroke="#111111"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0 }}
+                    whileInView={{ pathLength: 1 }}
+                    viewport={{ once: false, amount: 0.8 }}
+                    transition={{
+                      delay: 0.2,
+                      duration: 0.8,
+                      ease: [0.22, 1, 0.36, 1] as const,
+                    }}
+                  />
+                </svg>
+              </span>
+            </span>
+          </h2>
+          <p className="text-neutral-500 font-extrabold text-[12.5px] sm:text-[14px] leading-[1.4] mt-5 tracking-wide">
+            Choose the plan that fits your growth. No hidden charges, cancel anytime.
+          </p>
+
+          {/* Toggle Switch */}
+          <div className="flex bg-neutral-900/5 p-1 rounded-full w-fit mt-8 border border-neutral-950/10">
+            <button 
+              onClick={() => setBillingCycle("monthly")}
+              className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 ${billingCycle === "monthly" ? "bg-neutral-950 text-white shadow-md" : "text-neutral-500 hover:text-neutral-950"}`}
+            >
+              Monthly
+            </button>
+            <button 
+              onClick={() => setBillingCycle("yearly")}
+              className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 ${billingCycle === "yearly" ? "bg-neutral-950 text-white shadow-md" : "text-neutral-500 hover:text-neutral-950"}`}
+            >
+              Yearly
+            </button>
+          </div>
+        </div>
+
+        {/* Pricing Layout Container */}
+        <div className="w-full max-w-5xl flex flex-col gap-12 items-center">
+          
+          {/* MAIN PRICING CARD */}
+          <div 
+            className="w-full max-w-4xl border-2 border-neutral-900 rounded-[36px] p-8 md:p-12 flex flex-col md:flex-row gap-8 md:gap-12 justify-between items-stretch bg-transparent"
+          >
+            {/* Left Column: Pricing Info */}
+            <div className="flex flex-col justify-between w-full md:w-[42%] text-left">
+              <div>
+                <h4 className="text-neutral-400 text-[11px] font-black uppercase tracking-widest mb-1.5">
+                  Standard Plan
+                </h4>
+                <div className="flex items-baseline mb-3">
+                  <span className="text-[44px] md:text-[54px] font-black text-neutral-950 leading-none">
+                    ₹{billingCycle === "monthly" ? "999" : "6499"}
+                  </span>
+                  <span className="text-neutral-500 text-sm font-extrabold ml-2.5 tracking-wide">
+                    / {billingCycle === "monthly" ? "month" : "year"}
+                  </span>
+                </div>
+                {billingCycle === "yearly" && (
+                  <div className="text-[11px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-md w-fit mb-5">
+                    Save ₹5,489 yearly! (≈ ₹541/mo)
+                  </div>
+                )}
+                <p className="text-neutral-500 font-extrabold text-[13px] leading-relaxed mb-8">
+                  Everything you need to digitalize your café or restaurant. Simple flat fee. No setup costs.
+                </p>
+              </div>
+
+              {/* OnBoard Now CTA Button */}
+              <button className="w-full flex items-center justify-between bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase px-7 py-4.5 rounded-2xl transition-all duration-300 group shadow-lg shadow-black/10">
+                <span>OnBoard Now</span>
+                <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </div>
+              </button>
+            </div>
+
+            {/* Right Column: 15 Features List */}
+            <div className="w-full md:w-[58%] border-t md:border-t-0 md:border-l border-neutral-950/10 pt-8 md:pt-0 md:pl-10 flex flex-col justify-center">
+              <h5 className="text-[11px] font-black uppercase tracking-widest text-neutral-900 mb-5">
+                Included Features
+              </h5>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5 pr-2">
+                {pricingFeatures.map((feat, idx) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-lg bg-neutral-950/5 flex items-center justify-center text-neutral-950 flex-shrink-0">
+                      {feat.icon}
+                    </div>
+                    <span className="text-[12px] font-extrabold text-neutral-600 tracking-wide">
+                      {feat.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ADD-ONS SECTION */}
+          <div className="w-full max-w-4xl mt-6 flex flex-col items-center">
+            <div className="flex flex-col items-center text-center mb-8">
+              <span className="text-neutral-400 font-black text-xs uppercase tracking-widest mb-1">
+                Power-ups
+              </span>
+              <h3 className="text-neutral-950 font-black text-xl tracking-tight leading-none">
+                Available Add-ons
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+              {/* ADD-ON CARD 1: Google Review Booster */}
+              <div 
+                className="w-full border border-neutral-950/20 rounded-[28px] p-6 flex flex-col justify-between items-start bg-transparent hover:border-neutral-950 transition-colors duration-300 min-h-[220px]"
+              >
+                <div className="w-12 h-12 bg-neutral-950/5 border border-neutral-950/10 rounded-2xl flex items-center justify-center p-3">
+                  <svg viewBox="0 0 24 24" className="w-full h-full">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+                  </svg>
+                </div>
+                <div className="mt-4">
+                  <h4 className="text-neutral-900 text-sm font-black tracking-tight mb-1">
+                    Google Review Booster
+                  </h4>
+                  <p className="text-neutral-500 font-extrabold text-[11px] leading-relaxed mb-4">
+                    Boost review collection rate automatically via smart table check-ins.
+                  </p>
+                  <div className="flex items-baseline">
+                    <span className="text-neutral-950 font-black text-lg">
+                      ₹189
+                    </span>
+                    <span className="text-neutral-500 text-[10px] font-extrabold ml-1.5 uppercase">
+                      / month
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ADD-ON CARD 2: WhatsApp Automation */}
+              <div 
+                className="w-full border border-neutral-950/20 rounded-[28px] p-6 flex flex-col justify-between items-start bg-transparent hover:border-neutral-950 transition-colors duration-300 min-h-[220px]"
+              >
+                <div className="w-12 h-12 bg-neutral-950/5 border border-neutral-950/10 rounded-2xl flex items-center justify-center p-3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                  </svg>
+                </div>
+                <div className="mt-4">
+                  <h4 className="text-neutral-900 text-sm font-black tracking-tight mb-1">
+                    WhatsApp Automation
+                  </h4>
+                  <p className="text-neutral-500 font-extrabold text-[11px] leading-relaxed mb-4">
+                    Send instant orders, bills, and notifications directly to WhatsApp.
+                  </p>
+                  <div className="flex items-baseline">
+                    <span className="text-neutral-950 font-black text-lg">
+                      ₹349
+                    </span>
+                    <span className="text-neutral-500 text-[10px] font-extrabold ml-1.5 uppercase">
+                      / month
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ADD-ON CARD 3: AI Voice Agent */}
+              <div 
+                className="w-full border border-neutral-950/20 rounded-[28px] p-6 flex flex-col justify-between items-start bg-transparent hover:border-neutral-950 transition-colors duration-300 min-h-[220px]"
+              >
+                <div className="w-12 h-12 bg-neutral-950/5 border border-neutral-950/10 rounded-2xl flex items-center justify-center p-3 text-neutral-950">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                    <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8" />
+                  </svg>
+                </div>
+                <div className="mt-4">
+                  <h4 className="text-neutral-900 text-sm font-black tracking-tight mb-1">
+                    AI Voice Agent
+                  </h4>
+                  <p className="text-neutral-500 font-extrabold text-[11px] leading-relaxed mb-4">
+                    Accept table reservations & phone orders via automated AI voice calls.
+                  </p>
+                  <div className="flex items-baseline">
+                    <span className="text-neutral-950 font-black text-lg">
+                      ₹499
+                    </span>
+                    <span className="text-neutral-500 text-[10px] font-extrabold ml-1.5 uppercase">
+                      / month
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
 
       <motion.div
         initial={{ y: "100%" }}
