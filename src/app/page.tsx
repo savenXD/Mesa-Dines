@@ -15,7 +15,7 @@ export default function Home() {
 
   // FEATURE IMAGES CONFIGURATION (How It Works section)
   const featureImageSize = 480; // Maximum width in pixels for the process images on desktop
-  const featureImageAspectRatio = 0.75; // Aspect ratio of features images (height / width)
+  const featureImageAspectRatio = 2 / 3; // Aspect ratio of features images (3:2 width:height)
 
   // HORIZONTAL SCROLL CONFIGURATION: Adjust this value to manually increase or decrease the horizontal scroll length.
   // Positive value (e.g., 200) scrolls further right; negative value (e.g., -200) stops scrolling earlier.
@@ -27,9 +27,126 @@ export default function Home() {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [contactName, setContactName] = useState("");
+  const [contactWhatsApp, setContactWhatsApp] = useState("");
+  const [contactBusinessName, setContactBusinessName] = useState("");
+  const [contactCity, setContactCity] = useState("");
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [contactImageError, setContactImageError] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [hideSwipeBar, setHideSwipeBar] = useState(false);
+  const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(null);
+  const [problem1Error, setProblem1Error] = useState(false);
+  const [problem2Error, setProblem2Error] = useState(false);
+  const [problem3Error, setProblem3Error] = useState(false);
+  const isMountedRef = useRef(false);
+
+  const toggleInterest = (interest: string) => {
+    setSelectedInterests((prev) =>
+      prev.includes(interest)
+        ? prev.filter((i) => i !== interest)
+        : [...prev, interest]
+    );
+  };
+
+  const faqData = [
+    {
+      question: "How long does it take to set up?",
+      answer: "We get you up and running within 24–48 hours. Our onboarding team handles your entire menu upload, category mapping, and QR configuration for you.",
+      icon: (
+        <svg className="w-5 h-5 text-[#2D3E24]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      )
+    },
+    {
+      question: "Do my customers need to install an app?",
+      answer: "No app install required! Customers simply scan the QR code at their table to open your custom, high-speed digital menu directly in their mobile browser.",
+      icon: (
+        <svg className="w-5 h-5 text-[#2D3E24]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+          <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="3" />
+          <path d="M17 6L7 18M7 6l10 12" className="opacity-40" />
+        </svg>
+      )
+    },
+    {
+      question: "Can we customize the branding?",
+      answer: "Absolutely. You can customize the color palette, upload your brand logo, adjust typography, and design your digital menus to match your restaurant's unique identity.",
+      icon: (
+        <svg className="w-5 h-5 text-[#2D3E24]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03456 19.176 5.12256 19.264 5.1613 19.3732C5.20005 19.4824 5.18342 19.5968 5.15017 19.8257L5.02188 20.7064C4.9458 21.2295 5.38575 21.6811 5.91262 21.6111L6.78652 21.495C7.02672 21.4632 7.14682 21.4473 7.2605 21.4883C7.37418 21.5293 7.46499 21.6214 7.64661 21.8055C8.83151 22.008 10.3892 22 12 22Z" />
+          <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
+          <circle cx="11.5" cy="7.5" r="1" fill="currentColor" />
+          <circle cx="16.5" cy="9.5" r="1" fill="currentColor" />
+        </svg>
+      )
+    },
+    {
+      question: "Can customers place multiple orders from the same table?",
+      answer: "Yes! Multiple guests at the same table can scan the QR code concurrently, add items to a synchronized shared cart, and place orders smoothly.",
+      icon: (
+        <svg className="w-5 h-5 text-[#2D3E24]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <circle cx="9" cy="21" r="1" />
+          <circle cx="20" cy="21" r="1" />
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+        </svg>
+      )
+    },
+    {
+      question: "Can I update menu items anytime?",
+      answer: "Yes, all updates are instant. You can change prices, add daily specials, edit descriptions, or mark items as out-of-stock instantly from your manager dashboard.",
+      icon: (
+        <svg className="w-5 h-5 text-[#2D3E24]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+        </svg>
+      )
+    },
+    {
+      question: "How does the AI Google Review feature work?",
+      answer: "After ordering or paying, Mesa Dines prompts satisfied diners to share feedback. Our built-in AI helps them write draft reviews in seconds, boosting your rankings.",
+      icon: (
+        <svg className="w-5 h-5 text-[#2D3E24]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      )
+    }
+  ];
+
+  useEffect(() => {
+    isMountedRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    const contactSection = document.getElementById("contact");
+    if (!contactSection) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHideSwipeBar(entry.isIntersecting);
+      },
+      {
+        threshold: 0.08,
+      }
+    );
+
+    observer.observe(contactSection);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % 3);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   const pathRef = useRef<SVGPathElement>(null);
   const featuresRef = useRef<HTMLDivElement>(null);
   const horizontalPathRef = useRef<SVGPathElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
   const [featureErrors, setFeatureErrors] = useState([false, false, false, false]);
 
   const handleFeatureError = (index: number) => {
@@ -38,6 +155,32 @@ export default function Home() {
       next[index] = true;
       return next;
     });
+  };
+
+  const getCarouselOffset = (index: number) => {
+    if (typeof window === "undefined") return 0;
+    const width = window.innerWidth;
+    const container = carouselRef.current;
+    
+    let cardWidth = 300;
+    let gap = 16;
+    let containerWidth = container ? container.clientWidth : (width - 32);
+
+    if (width >= 768) {
+      cardWidth = 440;
+      gap = 32;
+      if (!container) containerWidth = 760; // md:max-w-[760px]
+    } else if (width >= 640) {
+      cardWidth = 380;
+      gap = 24;
+      if (!container) containerWidth = 540; // sm:max-w-[540px]
+    } else {
+      if (!container) containerWidth = 340; // max-w-[340px]
+    }
+    
+    // Center Card 0 by subtracting the container's 16px left-padding (px-4)
+    const offset = (containerWidth / 2) - (cardWidth / 2) - (index * (cardWidth + gap)) - 16;
+    return offset;
   };
 
   // Swipe-to-buy slider configuration and logic
@@ -326,8 +469,8 @@ export default function Home() {
           padding = width * 0.2;
         }
         
-        // 1 wavy text + 4 cards = 5 elements -> 5 gaps + left padding + viewport width + custom manual offset adjustment
-        const totalTrackWidth = wavyWidth + (4 * cardWidth) + (5 * gap) + (padding / 2) + width + HORIZONTAL_SCROLL_OFFSET_ADJUST;
+        // 1 wavy text + 4 cards = 5 elements -> 5 gaps + left padding + half of card width + half of viewport width + custom manual offset adjustment
+        const totalTrackWidth = wavyWidth + (4 * cardWidth) + (5 * gap) + (padding / 2) + (cardWidth / 2) + (width / 2) + HORIZONTAL_SCROLL_OFFSET_ADJUST;
         return totalTrackWidth;
       } catch (e) {
         console.error("Error in getScrollWidth:", e);
@@ -560,8 +703,8 @@ export default function Home() {
             padding = width * 0.2;
           }
           
-          // 1 wavy text + 4 cards = 5 elements -> 5 gaps + left padding + viewport width + custom manual offset adjustment
-          const totalTrackWidth = wavyWidth + (4 * cardWidth) + (5 * gap) + (padding / 2) + width + HORIZONTAL_SCROLL_OFFSET_ADJUST;
+          // 1 wavy text + 4 cards = 5 elements -> 5 gaps + left padding + half of card width + half of viewport width + custom manual offset adjustment
+          const totalTrackWidth = wavyWidth + (4 * cardWidth) + (5 * gap) + (padding / 2) + (cardWidth / 2) + (width / 2) + HORIZONTAL_SCROLL_OFFSET_ADJUST;
           return totalTrackWidth;
         } catch (e) {
           console.error("Error in getScrollWidth:", e);
@@ -801,27 +944,12 @@ export default function Home() {
         <rect x="3" y="14" width="7" height="7" />
       </svg>
     )},
-    { text: "Fully Personalized Digital Menu", icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
-        <path d="M6 6h10M6 10h10" />
-      </svg>
-    )},
     { text: "Custom Branding (Logo & Colors)", icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
         <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
         <path d="M7.5 10.5C8.32843 10.5 9 9.82843 9 9C9 8.17157 8.32843 7.5 7.5 7.5C6.67157 7.5 6 8.17157 6 9C6 9.82843 6.67157 10.5 7.5 10.5Z" />
         <path d="M11.5 7.5C12.3284 7.5 13 6.82843 13 6C13 5.17157 12.3284 4.5 11.5 4.5C10.6716 4.5 10 5.17157 10 6C10 6.82843 10.6716 7.5 11.5 7.5Z" />
         <path d="M16.5 9.5C17.3284 9.5 18 8.82843 18 8C18 7.17157 17.3284 6.5 16.5 6.5C15.6716 6.5 15 7.17157 15 8C15 8.82843 15.6716 9.5 16.5 9.5Z" />
-      </svg>
-    )},
-    { text: "Customized for Your Café", icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-        <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-        <line x1="6" y1="2" x2="6" y2="4" />
-        <line x1="10" y1="2" x2="10" y2="4" />
-        <line x1="14" y1="2" x2="14" y2="4" />
       </svg>
     )},
     { text: "Live Kitchen Order Dashboard", icon: (
@@ -847,47 +975,167 @@ export default function Home() {
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
       </svg>
     )},
-    { text: "Customer Feedback & Complaints", icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-      </svg>
-    )},
-    { text: "Sales & Order Analytics", icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-        <line x1="18" y1="20" x2="18" y2="10" />
-        <line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-    )},
     { text: "Instant Menu Management", icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
         <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-      </svg>
-    )},
-    { text: "Works on Any Smartphone", icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-        <line x1="12" y1="18" x2="12.01" y2="18" />
       </svg>
     )},
     { text: "Unlimited Orders & Tables", icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
         <path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4z" />
       </svg>
-    )},
-    { text: "WhatsApp & Call Support", icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-      </svg>
-    )},
-    { text: "Free Setup & Onboarding", icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-        <path d="M4.5 16.5c-1.5 1.26-2 2.5-2 3.5s.5 2 2 2c1.26 0 2.5-.5 3.5-2" />
-        <path d="M12 15l-3-3m3 3l3-3m-3 3V9" />
-        <path d="M22 2L12 12" />
-        <path d="M22 2l-6 15-3-3-3-3 15-6z" />
-      </svg>
     )}
+  ];
+
+  const premiumServices = [
+    {
+      title: "Google Review Booster",
+      price: "199",
+      period: "month",
+      desc: "Get more stars and rank higher on Google search results.",
+      icon: (
+        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current text-white">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+        </svg>
+      ),
+      features: [
+        {
+          text: "1-Tap Scan to Review (Zero typing required)",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+              <path d="M12 18h.01" />
+            </svg>
+          )
+        },
+        {
+          text: "AI drafts custom 5-star reviews for the guest",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707" />
+            </svg>
+          )
+        },
+        {
+          text: "Blocks bad reviews by filtering complaints privately",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          )
+        },
+        {
+          text: "Boosts your Google ranking to get 10x more walk-ins",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+          )
+        }
+      ]
+    },
+    {
+      title: "WhatsApp Automation",
+      price: "349",
+      period: "month",
+      desc: "Frictionless AI chat agent to handle orders and inquiries instantly.",
+      icon: (
+        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#25D366]">
+          <path d="M12.012 2c-5.506 0-9.988 4.482-9.988 9.988 0 1.76.459 3.473 1.332 4.988L2 22l5.166-1.356c1.47.8 3.118 1.22 4.834 1.22h.004c5.506 0 9.988-4.482 9.988-9.988C22 6.482 17.518 2 12.012 2zm6.069 14.157c-.248.696-1.248 1.272-1.74 1.344-.456.072-.888.084-2.868-.72-2.532-1.032-4.14-3.624-4.26-3.792-.12-.168-.972-1.296-.972-2.472 0-1.176.612-1.752.828-1.992.216-.24.468-.3.624-.3h.456c.12 0 .288.012.444.384.168.408.576 1.404.624 1.5.048.096.084.216.024.336-.06.12-.132.228-.264.384-.132.156-.276.348-.396.468-.132.132-.276.276-.12.54 1.092 1.884 2.292 2.76 3.204 3.168.216.096.384.024.492-.096.12-.132.516-.6.66-.804.144-.204.3-.168.516-.096.216.072 1.368.648 1.608.768.24.12.396.18.456.288.06.108.06.624-.188 1.32z"/>
+        </svg>
+      ),
+      features: [
+        {
+          text: "Not generic Quick Replies (Speaks like a human)",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          )
+        },
+        {
+          text: "AI-generated intelligent, customized answers",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3.008 3.008 0 0 1 0-3.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2Z" />
+              <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3.008 3.008 0 0 0 0-3.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2Z" />
+            </svg>
+          )
+        },
+        {
+          text: "Takes orders and reservations 24/7 autonomously",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          )
+        },
+        {
+          text: "Replies in milliseconds so no customer is left waiting",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+          )
+        }
+      ]
+    },
+    {
+      title: "AI Voice Agent",
+      price: "499",
+      period: "month",
+      desc: "Warm, natural-sounding AI phone receptionist for reservations.",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-white">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+          <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8" />
+        </svg>
+      ),
+      features: [
+        {
+          text: "Speaks in a warm, natural human-like voice",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+              <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
+            </svg>
+          )
+        },
+        {
+          text: "Answers calls instantly (Never miss a booking again)",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+          )
+        },
+        {
+          text: "Fully trained on your menu, timings & prices",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <path d="M4 19.5v-15c0-1.1.9-2 2-2h14v20H6c-1.1 0-2-.9-2-2z" />
+              <path d="M6 2v18" />
+            </svg>
+          )
+        },
+        {
+          text: "Books tables & records orders directly into your system",
+          icon: (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-neutral-500 flex-shrink-0 mt-0.5">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+            </svg>
+          )
+        }
+      ]
+    }
   ];
 
   return (
@@ -926,14 +1174,14 @@ export default function Home() {
         </div>
 
         {/* Center: Desktop Navigation Links with sliding pill hover */}
-        <div className="hidden md:flex items-center gap-1.5 bg-[#ffffff]/80 backdrop-blur-md rounded-[15px] p-1.5 shadow-clay-logo border border-white/40 h-[58px]">
-          {["Home", "Our Tech", "Pricing", "About Us", "Contact"].map((item, idx) => (
+        <div className="hidden md:flex items-center gap-1 bg-[#ffffff]/80 backdrop-blur-md rounded-[15px] p-1.5 shadow-clay-logo border border-white/40 h-[58px]">
+          {["Home", "How It Works", "Why Mesa", "Problems", "Pricing", "FAQ", "Contact"].map((item, idx) => (
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
               onMouseEnter={() => setHoveredIdx(idx)}
               onMouseLeave={() => setHoveredIdx(null)}
-              className="relative px-5 py-2 rounded-[12px] text-[14.5px] font-extrabold text-neutral-800 transition-colors duration-200 animate-none"
+              className="relative px-3.5 py-2 rounded-[12px] text-[13.5px] font-extrabold text-neutral-800 transition-colors duration-200 animate-none whitespace-nowrap"
             >
               <span className="relative z-10">{item}</span>
               {hoveredIdx === idx && (
@@ -950,14 +1198,14 @@ export default function Home() {
         {/* Right Side: Desktop CTA Button / Mobile Hamburger */}
         <div className="flex items-center gap-3">
           {/* Desktop CTA */}
-          <button className="hidden md:flex items-center justify-center gap-2 bg-neutral-950 text-white rounded-[15px] h-[58px] px-7 text-[15.5px] font-extrabold shadow-clay-button hover:bg-neutral-900 transition-all duration-200 active:scale-[0.97] cursor-pointer">
+          <a href="#pricing" className="hidden md:flex items-center justify-center gap-2 bg-neutral-950 text-white rounded-[15px] h-[58px] px-7 text-[15.5px] font-extrabold shadow-clay-button hover:bg-neutral-900 transition-all duration-200 active:scale-[0.97] cursor-pointer">
             <span>Buy now</span>
             <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] stroke-current fill-none text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="9" cy="21" r="1" fill="currentColor" />
               <circle cx="20" cy="21" r="1" fill="currentColor" />
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
             </svg>
-          </button>
+          </a>
 
           {/* Mobile Hamburger Button */}
           <button
@@ -1001,8 +1249,8 @@ export default function Home() {
             className="fixed inset-0 bg-[#f7f7f7]/98 backdrop-blur-md z-30 flex flex-col justify-center px-8 md:px-24"
           >
             <div className="absolute inset-0 grid-mesh pointer-events-none -z-10" />
-            <nav className="flex flex-col gap-6 text-3xl md:text-5xl font-extrabold text-neutral-900 tracking-tight">
-              {["Home", "Our Tech", "Pricing", "About Us", "Contact"].map((item, idx) => (
+            <nav className="flex flex-col gap-4 text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
+              {["Home", "How It Works", "Why Mesa", "Problems", "Pricing", "FAQ", "Contact"].map((item, idx) => (
                 <motion.a
                   key={item}
                   href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
@@ -1033,7 +1281,7 @@ export default function Home() {
       </AnimatePresence>
 
       {/* HERO SECTION */}
-      <main className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-10 pt-2 pb-12 md:pb-16 flex flex-col items-center flex-grow">
+      <main id="home" className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-10 pt-2 pb-12 md:pb-16 flex flex-col items-center flex-grow">
         <div className="flex flex-col md:grid md:grid-cols-12 w-full gap-y-6 md:gap-y-8 gap-x-8 md:gap-x-12 lg:gap-x-16 items-center mt-6 md:mt-10">
           
           {/* Text Column: Heading & Subheading */}
@@ -1178,31 +1426,34 @@ export default function Home() {
               transition={{ delay: 1.1, duration: 0.5, ease: "easeOut" }}
               className="flex flex-row gap-3 w-full md:w-auto max-w-sm md:max-w-none justify-center md:justify-start mt-0 items-center mx-auto md:mx-0"
             >
-              {/* Watch 2-minute demo */}
-              <button className="w-1/2 md:w-[175px] relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-neutral-950 text-white font-extrabold border border-neutral-950 shadow-clay-button hover:bg-neutral-900 transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] cursor-pointer origin-center">
+              {/* Buy Now */}
+              <a href="#pricing" className="w-1/2 md:w-[175px] relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-neutral-950 text-white font-extrabold border border-neutral-950 shadow-clay-button hover:bg-neutral-900 transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] cursor-pointer origin-center">
                 <div className="absolute left-[5px] top-[5px] bottom-[5px] aspect-square bg-white/10 md:bg-white/12 rounded-xl flex items-center justify-center">
-                  <svg className="w-[18px] h-[18px] sm:w-[21px] sm:h-[21px] fill-current text-white" viewBox="0 0 24 24">
-                    <path d="M8 5.14v14l11-7-11-7z" />
+                  <svg className="w-[18px] h-[18px] sm:w-[21px] sm:h-[21px] stroke-current fill-none text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <circle cx="9" cy="21" r="1" fill="currentColor" />
+                    <circle cx="20" cy="21" r="1" fill="currentColor" />
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                   </svg>
                 </div>
-                <span className="w-full text-center pl-8 md:pl-10 text-[13.5px] sm:text-[14.5px] md:text-[15px] tracking-wide whitespace-nowrap">Watch Demo</span>
-              </button>
+                <span className="w-full text-center pl-8 md:pl-10 text-[13.5px] sm:text-[14.5px] md:text-[15px] tracking-wide whitespace-nowrap">Buy Now</span>
+              </a>
 
-              {/* Book Call */}
-              <button className="group w-1/2 md:w-[175px] relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-white text-neutral-950 font-extrabold border border-[#e5e5e0] shadow-clay-card cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] origin-center">
+              {/* See Pricing */}
+              <a href="#pricing" className="group w-1/2 md:w-[175px] relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-white text-neutral-950 font-extrabold border border-[#e5e5e0] shadow-clay-card cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] origin-center">
                 {/* Liquid Fill background element */}
-                <div className="absolute inset-0 bg-[#25D366] origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-700 ease-[cubic-bezier(0.19,1,0.22,1)]" />
+                <div className="absolute inset-0 bg-[#2D3E24] origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-700 ease-[cubic-bezier(0.19,1,0.22,1)]" />
                 
                 {/* Icon Container */}
-                <div className="absolute left-[5px] top-[5px] bottom-[5px] aspect-square bg-[#25D366] group-hover:bg-white rounded-xl flex items-center justify-center shadow-sm z-10 transition-colors duration-500">
-                  <svg className="w-[18px] h-[18px] sm:w-[21px] sm:h-[21px] fill-current text-white group-hover:text-[#25D366] transition-colors duration-500" viewBox="0 0 24 24">
-                    <path d="M12.031 2C6.49 2 2 6.49 2 12.03c0 1.916.536 3.708 1.464 5.253L2 22l4.896-1.282c1.478.807 3.167 1.282 4.966 1.282C17.57 22 22 17.51 22 11.97 22 6.49 17.57 2 12.03 2zm4.335 13.916c-.226.634-1.3 1.238-1.808 1.32-.472.075-1.079.132-3.14-.726-2.632-1.094-4.302-3.793-4.434-3.969-.132-.176-1.079-1.433-1.079-2.736 0-1.302.68-1.943.925-2.207.245-.264.547-.33.725-.33.176 0 .356.006.509.013.162.006.384-.063.597.453.226.547.774 1.887.843 2.025.069.138.113.302.019.49-.094.188-.145.302-.289.471-.145.17-.308.384-.44.516-.151.15-.31.314-.132.616.176.302.78 1.283 1.673 2.075.918.818 1.692 1.076 1.993 1.226.302.151.478.126.66-.088.183-.214.774-.906.981-1.214.208-.308.415-.258.698-.151.283.107 1.792.843 2.1.993.308.15.515.226.59.358.076.132.076.761-.15 1.396z" />
+                <div className="absolute left-[5px] top-[5px] bottom-[5px] aspect-square bg-[#2D3E24] group-hover:bg-white rounded-xl flex items-center justify-center shadow-sm z-10 transition-colors duration-500">
+                  <svg className="w-[18px] h-[18px] sm:w-[21px] sm:h-[21px] fill-none stroke-current text-white group-hover:text-[#2D3E24] transition-colors duration-500" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                    <line x1="7" y1="7" x2="7.01" y2="7" />
                   </svg>
                 </div>
                 
                 {/* Text Span */}
-                <span className="relative z-10 w-full text-center pl-8 md:pl-10 text-[13.5px] sm:text-[14.5px] md:text-[15px] tracking-wide whitespace-nowrap text-neutral-950 group-hover:text-white transition-colors duration-500">Book Call</span>
-              </button>
+                <span className="relative z-10 w-full text-center pl-8 md:pl-10 text-[13.5px] sm:text-[14.5px] md:text-[15px] tracking-wide whitespace-nowrap text-neutral-950 group-hover:text-white transition-colors duration-500">See Pricing</span>
+              </a>
             </motion.div>
           </div>
 
@@ -1210,7 +1461,7 @@ export default function Home() {
       </main>
 
       {/* HOW IT WORKS SECTION */}
-      <section className="w-full max-w-4xl md:max-w-5xl lg:max-w-6xl px-4 sm:px-6 py-20 flex flex-col items-center relative z-20">
+      <section id="how-it-works" className="w-full max-w-4xl md:max-w-5xl lg:max-w-6xl px-4 sm:px-6 py-20 flex flex-col items-center relative z-20">
         
         {/* Section Heading & Subtitle */}
         <div className="flex flex-col items-center text-center w-full mb-16">
@@ -1339,7 +1590,7 @@ export default function Home() {
       </section>
 
       {/* WHY CHOOSE MESA? SECTION WITH GSAP PINNING & HORIZONTAL SCROLL */}
-      <div className="w-full block">
+      <div id="why-mesa" className="w-full block">
         <section 
           ref={horizontalSectionRef} 
           className="relative w-full h-screen overflow-hidden flex flex-col justify-center items-center bg-transparent z-20"
@@ -1464,9 +1715,244 @@ export default function Home() {
           </div>
         </section>
       </div>
+      {/* PROBLEMS MESA DINES SOLVES SECTION */}
+      <section id="problems" className="w-full max-w-5xl md:max-w-6xl px-4 sm:px-6 py-20 flex flex-col items-center relative z-20 border-t border-neutral-100">
+        <div className="flex flex-col items-center text-center w-full max-w-2xl mb-16">
+          <span className="text-neutral-400 font-black text-xs uppercase tracking-widest mb-2">
+            The Friction Points
+          </span>
+          <h2 className="text-[28px] sm:text-[38px] font-black tracking-tight text-neutral-950 leading-tight">
+            Problems Mesa Dines Solves
+          </h2>
+        </div>
 
-      {/* SIMPLE, FLAT PRICING SECTION */}
-      <section className="w-full py-20 bg-transparent flex flex-col items-center justify-center px-6 relative overflow-hidden z-20 border-t border-neutral-100">
+        <div className="w-full flex flex-col gap-12 md:gap-16">
+          
+          {/* Problem 1 */}
+          <div className="w-full flex flex-col md:flex-row items-center gap-8 md:gap-16">
+            <div className="w-full md:w-1/2 flex items-center justify-center">
+              <div className="relative w-full aspect-[3/2] max-w-[420px] md:max-w-none rounded-2xl overflow-hidden">
+                {!problem1Error ? (
+                  <Image
+                    src="/problem1.png"
+                    alt="The Quiet Revenue Leak"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 500px"
+                    className="object-contain"
+                    onError={() => setProblem1Error(true)}
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-neutral-950/[0.01] border border-neutral-200/50 rounded-2xl">
+                    <svg className="w-16 h-16 text-neutral-300 fill-none stroke-current" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="12" x2="16" y2="14" />
+                    </svg>
+                    <span className="text-neutral-400 font-black text-[11px] uppercase tracking-wider mt-4">
+                      problem1.png placeholder
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="w-full md:w-1/2 flex flex-col items-start text-left gap-5">
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-full bg-neutral-950 text-white flex items-center justify-center font-black text-sm select-none">
+                  01
+                </div>
+                <span className="text-[#D13B3B] font-black text-sm uppercase tracking-wider">
+                  The Quiet Revenue Leak
+                </span>
+              </div>
+              <h3 className="text-2xl sm:text-[30px] font-black tracking-tight text-neutral-950 leading-tight">
+                They wanted to order more. But the waiter wasn't there.
+              </h3>
+              
+              {/* Connected Dots & Line */}
+              <div className="relative flex flex-col gap-6 pl-6 w-full mt-2">
+                
+                <div className="relative">
+                  {/* Line connecting to the next dot */}
+                  <div className="absolute -left-[20px] top-[11px] h-[calc(100%+24px)] w-[2px] bg-neutral-950" />
+                  <div className="absolute -left-[25px] top-[5px] w-[12px] h-[12px] rounded-full bg-neutral-950 border-2 border-white ring-1 ring-neutral-950 z-10" />
+                  <p className="text-neutral-500 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed">
+                    Group tables are your highest-value covers — and your most mismanaged.
+                  </p>
+                </div>
+                
+                <div className="relative">
+                  {/* Line connecting to the next dot */}
+                  <div className="absolute -left-[20px] top-[11px] h-[calc(100%+24px)] w-[2px] bg-neutral-950" />
+                  <div className="absolute -left-[25px] top-[5px] w-[12px] h-[12px] rounded-full bg-neutral-950 border-2 border-white ring-1 ring-neutral-950 z-10" />
+                  <p className="text-neutral-500 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed">
+                    Someone forgets an item. Someone isn't sure. Someone doesn't want to raise their hand.
+                  </p>
+                </div>
+                
+                <div className="relative">
+                  {/* Last point: no connecting line */}
+                  <div className="absolute -left-[25px] top-[5px] w-[12px] h-[12px] rounded-full bg-neutral-950 border-2 border-white ring-1 ring-neutral-950 z-10" />
+                  <p className="text-neutral-500 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed">
+                    The waiter's busy. The moment passes. The order never happens.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Soft Divider */}
+          <div className="w-full h-[1px] bg-neutral-200/50 my-4 md:my-8" />
+
+          {/* Problem 2 */}
+          <div className="w-full flex flex-col md:flex-row-reverse items-center gap-8 md:gap-16">
+            <div className="w-full md:w-1/2 flex items-center justify-center">
+              <div className="relative w-full aspect-[3/2] max-w-[420px] md:max-w-none rounded-2xl overflow-hidden">
+                {!problem2Error ? (
+                  <Image
+                    src="/problem2.png"
+                    alt="Protect the Experience Before It Breaks"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 500px"
+                    className="object-contain"
+                    onError={() => setProblem2Error(true)}
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-neutral-950/[0.01] border border-neutral-200/50 rounded-2xl">
+                    <svg className="w-16 h-16 text-neutral-300 fill-none stroke-current" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <path d="M2 20h20M12 4a8 8 0 0 0-8 8h16a8 8 0 0 0-8-8zM12 2v2" />
+                      <path d="m9 16 6-6M15 16 9 10" />
+                    </svg>
+                    <span className="text-neutral-400 font-black text-[11px] uppercase tracking-wider mt-4">
+                      problem2.png placeholder
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="w-full md:w-1/2 flex flex-col items-start text-left gap-5">
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-full bg-neutral-950 text-white flex items-center justify-center font-black text-sm select-none">
+                  02
+                </div>
+                <span className="text-[#D13B3B] font-black text-sm uppercase tracking-wider">
+                  Protect the Experience Before It Breaks
+                </span>
+              </div>
+              <h3 className="text-2xl sm:text-[30px] font-black tracking-tight text-neutral-950 leading-tight">
+                That 'sorry, we don't have it' moment? It costs more than the dish.
+              </h3>
+              
+              {/* Connected Dots & Line */}
+              <div className="relative flex flex-col gap-6 pl-6 w-full mt-2">
+                
+                <div className="relative">
+                  {/* Line connecting to the next dot */}
+                  <div className="absolute -left-[20px] top-[11px] h-[calc(100%+24px)] w-[2px] bg-neutral-950" />
+                  <div className="absolute -left-[25px] top-[5px] w-[12px] h-[12px] rounded-full bg-neutral-950 border-2 border-white ring-1 ring-neutral-950 z-10" />
+                  <p className="text-neutral-500 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed">
+                    A guest reads the menu, builds anticipation, decides what they want — and then you tell them it's not available.
+                  </p>
+                </div>
+                
+                <div className="relative">
+                  {/* Line connecting to the next dot */}
+                  <div className="absolute -left-[20px] top-[11px] h-[calc(100%+24px)] w-[2px] bg-neutral-950" />
+                  <div className="absolute -left-[25px] top-[5px] w-[12px] h-[12px] rounded-full bg-neutral-950 border-2 border-white ring-1 ring-neutral-950 z-10" />
+                  <p className="text-neutral-500 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed">
+                    That's not just a missed sale. That's a crack in trust.
+                  </p>
+                </div>
+                
+                <div className="relative">
+                  {/* Last point: no connecting line */}
+                  <div className="absolute -left-[25px] top-[5px] w-[12px] h-[12px] rounded-full bg-neutral-950 border-2 border-white ring-1 ring-neutral-950 z-10" />
+                  <p className="text-neutral-500 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed">
+                    Mesa Dines lets you hide sold-out items instantly — from any device, in seconds. Guests only ever see what they can actually have.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Soft Divider */}
+          <div className="w-full h-[1px] bg-neutral-200/50 my-4 md:my-8" />
+
+          {/* Problem 3 */}
+          <div className="w-full flex flex-col md:flex-row items-center gap-8 md:gap-16">
+            <div className="w-full md:w-1/2 flex items-center justify-center">
+              <div className="relative w-full aspect-[3/2] max-w-[420px] md:max-w-none rounded-2xl overflow-hidden">
+                {!problem3Error ? (
+                  <Image
+                    src="/problem3.png"
+                    alt="Reclaim Your Staff's Best Hours"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 500px"
+                    className="object-contain"
+                    onError={() => setProblem3Error(true)}
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-neutral-950/[0.01] border border-neutral-200/50 rounded-2xl">
+                    <svg className="w-16 h-16 text-neutral-300 fill-none stroke-current" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <polyline points="6 9 6 2 18 2 18 9" />
+                      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                      <rect x="6" y="14" width="12" height="8" />
+                      <line x1="2" y1="2" x2="22" y2="22" />
+                    </svg>
+                    <span className="text-neutral-400 font-black text-[11px] uppercase tracking-wider mt-4">
+                      problem3.png placeholder
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="w-full md:w-1/2 flex flex-col items-start text-left gap-5">
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-full bg-neutral-950 text-white flex items-center justify-center font-black text-sm select-none">
+                  03
+                </div>
+                <span className="text-[#D13B3B] font-black text-sm uppercase tracking-wider">
+                  Your best staff shouldn't be human printers
+                </span>
+              </div>
+              <h3 className="text-2xl sm:text-[30px] font-black tracking-tight text-neutral-950 leading-tight">
+                Reclaim Your Staff's Best Hours
+              </h3>
+              
+              {/* Connected Dots & Line */}
+              <div className="relative flex flex-col gap-6 pl-6 w-full mt-2">
+                
+                <div className="relative">
+                  {/* Line connecting to the next dot */}
+                  <div className="absolute -left-[20px] top-[11px] h-[calc(100%+24px)] w-[2px] bg-neutral-950" />
+                  <div className="absolute -left-[25px] top-[5px] w-[12px] h-[12px] rounded-full bg-neutral-950 border-2 border-white ring-1 ring-neutral-950 z-10" />
+                  <p className="text-neutral-500 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed">
+                    Taking orders is the most repetitive, lowest-value thing your team does.
+                  </p>
+                </div>
+                
+                <div className="relative">
+                  {/* Line connecting to the next dot */}
+                  <div className="absolute -left-[20px] top-[11px] h-[calc(100%+24px)] w-[2px] bg-neutral-950" />
+                  <div className="absolute -left-[25px] top-[5px] w-[12px] h-[12px] rounded-full bg-neutral-950 border-2 border-white ring-1 ring-neutral-950 z-10" />
+                  <p className="text-neutral-500 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed">
+                    Every minute spent scribbling is a minute not spent making a guest feel remembered.
+                  </p>
+                </div>
+                
+                <div className="relative">
+                  {/* Last point: no connecting line */}
+                  <div className="absolute -left-[25px] top-[5px] w-[12px] h-[12px] rounded-full bg-neutral-950 border-2 border-white ring-1 ring-neutral-950 z-10" />
+                  <p className="text-neutral-500 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed">
+                    Mesa Dines handles the orders. Your staff handles the experience.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+      <section id="pricing" className="w-full py-20 bg-transparent flex flex-col items-center justify-center px-6 relative overflow-hidden z-20 border-t border-neutral-100">
         
         {/* Section Header */}
         <div className="flex flex-col items-center text-center w-full max-w-xl mb-12">
@@ -1529,11 +2015,13 @@ export default function Home() {
           
           {/* MAIN PRICING CARD */}
           <div 
-            className="w-full max-w-4xl border-2 border-neutral-900 rounded-[36px] p-8 md:p-12 flex flex-col md:flex-row gap-8 md:gap-12 justify-between items-stretch bg-transparent"
+            className="w-full max-w-4xl border-2 border-neutral-900 rounded-[36px] p-8 md:p-12 flex flex-col gap-8 md:gap-10 bg-transparent"
           >
-            {/* Left Column: Pricing Info */}
-            <div className="flex flex-col justify-between w-full md:w-[42%] text-left">
-              <div>
+            {/* Top Row: Info & Features */}
+            <div className="flex flex-col md:flex-row gap-8 md:gap-12 justify-between items-start w-full">
+              
+              {/* Left Column: Pricing Info */}
+              <div className="flex flex-col justify-start w-full md:w-[42%] text-left">
                 <h4 className="text-neutral-400 text-[11px] font-black uppercase tracking-widest mb-1.5">
                   Standard Plan
                 </h4>
@@ -1550,13 +2038,35 @@ export default function Home() {
                     Save ₹5,489 yearly! (≈ ₹541/mo)
                   </div>
                 )}
-                <p className="text-neutral-500 font-extrabold text-[13px] leading-relaxed mb-8">
+                <p className="text-neutral-500 font-extrabold text-[13px] leading-relaxed">
                   Everything you need to digitalize your café or restaurant. Simple flat fee. No setup costs.
                 </p>
               </div>
 
-              {/* OnBoard Now CTA Button */}
-              <button className="w-full flex items-center justify-between bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase px-7 py-4.5 rounded-2xl transition-all duration-300 group shadow-lg shadow-black/10">
+              {/* Right Column: Features List */}
+              <div className="w-full md:w-[58%] border-t md:border-t-0 md:border-l border-neutral-950/10 pt-8 md:pt-0 md:pl-10 flex flex-col justify-start">
+                <h5 className="text-[11px] font-black uppercase tracking-widest text-neutral-900 mb-5">
+                  Included Features
+                </h5>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5 pr-2">
+                  {pricingFeatures.map((feat, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-lg bg-neutral-950/5 flex items-center justify-center text-neutral-950 flex-shrink-0">
+                        {feat.icon}
+                      </div>
+                      <span className="text-[12px] font-extrabold text-neutral-600 tracking-wide">
+                        {feat.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Row: CTA Button (Spans full width at the bottom of the card) */}
+            <div className="w-full pt-4 border-t border-neutral-950/5">
+              <button className="w-full flex items-center justify-between bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase px-8 py-5 rounded-2xl transition-all duration-300 group shadow-lg shadow-black/10">
                 <span>OnBoard Now</span>
                 <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
@@ -1567,132 +2077,485 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Right Column: 15 Features List */}
-            <div className="w-full md:w-[58%] border-t md:border-t-0 md:border-l border-neutral-950/10 pt-8 md:pt-0 md:pl-10 flex flex-col justify-center">
-              <h5 className="text-[11px] font-black uppercase tracking-widest text-neutral-900 mb-5">
-                Included Features
-              </h5>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5 pr-2">
-                {pricingFeatures.map((feat, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-lg bg-neutral-950/5 flex items-center justify-center text-neutral-950 flex-shrink-0">
-                      {feat.icon}
-                    </div>
-                    <span className="text-[12px] font-extrabold text-neutral-600 tracking-wide">
-                      {feat.text}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
-          {/* ADD-ONS SECTION */}
-          <div className="w-full max-w-4xl mt-6 flex flex-col items-center">
-            <div className="flex flex-col items-center text-center mb-8">
-              <span className="text-neutral-400 font-black text-xs uppercase tracking-widest mb-1">
-                Power-ups
+          {/* OTHER PREMIUM SERVICES (CAROUSEL SLIDESHOW) */}
+          <div className="w-full max-w-4xl mt-12 flex flex-col items-center">
+            
+            {/* Header */}
+            <div className="flex flex-col items-center text-center mb-10">
+              <span className="text-neutral-400 font-black text-xs uppercase tracking-widest mb-1.5">
+                Premium Upgrades
               </span>
-              <h3 className="text-neutral-950 font-black text-xl tracking-tight leading-none">
-                Available Add-ons
+              <h3 className="text-neutral-950 font-black text-2xl md:text-3xl tracking-tight leading-none">
+                Other Premium Services
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-              {/* ADD-ON CARD 1: Google Review Booster */}
-              <div 
-                className="w-full border border-neutral-950/20 rounded-[28px] p-6 flex flex-col justify-between items-start bg-transparent hover:border-neutral-950 transition-colors duration-300 min-h-[220px]"
-              >
-                <div className="w-12 h-12 bg-neutral-950/5 border border-neutral-950/10 rounded-2xl flex items-center justify-center p-3">
-                  <svg viewBox="0 0 24 24" className="w-full h-full">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
-                  </svg>
-                </div>
-                <div className="mt-4">
-                  <h4 className="text-neutral-900 text-sm font-black tracking-tight mb-1">
-                    Google Review Booster
-                  </h4>
-                  <p className="text-neutral-500 font-extrabold text-[11px] leading-relaxed mb-4">
-                    Boost review collection rate automatically via smart table check-ins.
-                  </p>
-                  <div className="flex items-baseline">
-                    <span className="text-neutral-950 font-black text-lg">
-                      ₹189
-                    </span>
-                    <span className="text-neutral-500 text-[10px] font-extrabold ml-1.5 uppercase">
-                      / month
-                    </span>
-                  </div>
-                </div>
+            {/* Carousel Container */}
+            <div ref={carouselRef} className="relative w-full max-w-[340px] sm:max-w-[540px] md:max-w-[760px] overflow-hidden mx-auto px-4 py-4">
+              
+              {/* Carousel Window */}
+              <div className="w-full relative min-h-[465px] flex items-center justify-start bg-transparent overflow-visible">
+                <motion.div 
+                  drag="x"
+                  dragConstraints={{ 
+                    left: getCarouselOffset(2), 
+                    right: getCarouselOffset(0) 
+                  }}
+                  dragElastic={0.2}
+                  onDragEnd={(e, info) => {
+                    const threshold = 55;
+                    if (info.offset.x < -threshold) {
+                      setActiveSlide((prev) => Math.min(prev + 1, 2));
+                    } else if (info.offset.x > threshold) {
+                      setActiveSlide((prev) => Math.max(prev - 1, 0));
+                    }
+                  }}
+                  animate={{ x: getCarouselOffset(activeSlide) }}
+                  transition={{ type: "spring", stiffness: 220, damping: 26 }}
+                  className="flex flex-row flex-nowrap items-stretch gap-4 sm:gap-6 md:gap-8 w-max cursor-grab active:cursor-grabbing overflow-visible select-none"
+                >
+                  {premiumServices.map((service, idx) => (
+                    <div 
+                      key={idx} 
+                      className="w-[300px] sm:w-[380px] md:w-[440px] flex-shrink-0 flex justify-center overflow-visible"
+                    >
+                      <div className="w-full flex flex-col justify-between items-stretch min-h-[365px] text-left border border-neutral-950/15 rounded-[32px] p-5 md:p-7 bg-white shadow-xl shadow-black/5 relative overflow-hidden transition-all duration-300">
+                        
+                        {/* Top half */}
+                        <div>
+                          {/* Header section (Icon + Title & Price) */}
+                          <div className="flex items-center justify-between gap-4 mb-4">
+                            
+                            {/* Dark Wrapper Icon Div */}
+                            <div className="w-12 h-12 bg-neutral-950 text-white rounded-2xl flex items-center justify-center p-3 border border-neutral-800 shadow-md flex-shrink-0">
+                              {service.icon}
+                            </div>
+                            
+                            {/* Price Badge */}
+                            <div className="flex items-baseline bg-neutral-900/5 px-3 py-1.5 rounded-xl border border-neutral-950/5">
+                              <span className="text-neutral-950 font-black text-base">
+                                ₹{service.price}
+                              </span>
+                              <span className="text-neutral-500 text-[9px] font-black uppercase ml-1">
+                                / {service.period}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Title & Description */}
+                          <h4 className="text-neutral-900 text-base font-black tracking-tight mb-1">
+                            {service.title}
+                          </h4>
+                          <p className="text-neutral-500 font-extrabold text-[11px] leading-relaxed mb-4">
+                            {service.desc}
+                          </p>
+
+                          {/* Feature Bullets Grid (4 points) */}
+                          <div className="flex flex-col gap-2 mb-5">
+                            {service.features.map((feat, fIdx) => (
+                              <div key={fIdx} className="flex items-start gap-2.5">
+                                {feat.icon}
+                                <span className="text-[11px] font-extrabold text-neutral-600 tracking-wide leading-tight">
+                                  {feat.text}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Buy Now CTA Button */}
+                        <button className="w-full flex items-center justify-center bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 rounded-2xl transition-all duration-300 group shadow-md shadow-black/10">
+                          <span>Buy Now</span>
+                        </button>
+
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
               </div>
 
-              {/* ADD-ON CARD 2: WhatsApp Automation */}
-              <div 
-                className="w-full border border-neutral-950/20 rounded-[28px] p-6 flex flex-col justify-between items-start bg-transparent hover:border-neutral-950 transition-colors duration-300 min-h-[220px]"
-              >
-                <div className="w-12 h-12 bg-neutral-950/5 border border-neutral-950/10 rounded-2xl flex items-center justify-center p-3">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                  </svg>
-                </div>
-                <div className="mt-4">
-                  <h4 className="text-neutral-900 text-sm font-black tracking-tight mb-1">
-                    WhatsApp Automation
-                  </h4>
-                  <p className="text-neutral-500 font-extrabold text-[11px] leading-relaxed mb-4">
-                    Send instant orders, bills, and notifications directly to WhatsApp.
-                  </p>
-                  <div className="flex items-baseline">
-                    <span className="text-neutral-950 font-black text-lg">
-                      ₹349
-                    </span>
-                    <span className="text-neutral-500 text-[10px] font-extrabold ml-1.5 uppercase">
-                      / month
-                    </span>
-                  </div>
-                </div>
+              {/* Navigation Dots */}
+              <div className="flex justify-center gap-2 mt-6">
+                {[0, 1, 2].map((idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveSlide(idx)}
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${activeSlide === idx ? "bg-neutral-950 w-6" : "bg-neutral-300/80 hover:bg-neutral-400"}`}
+                  />
+                ))}
               </div>
 
-              {/* ADD-ON CARD 3: AI Voice Agent */}
-              <div 
-                className="w-full border border-neutral-950/20 rounded-[28px] p-6 flex flex-col justify-between items-start bg-transparent hover:border-neutral-950 transition-colors duration-300 min-h-[220px]"
-              >
-                <div className="w-12 h-12 bg-neutral-950/5 border border-neutral-950/10 rounded-2xl flex items-center justify-center p-3 text-neutral-950">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                    <path d="M19 10v1a7 7 0 0 1-14 0v-1M12 19v4M8 23h8" />
-                  </svg>
-                </div>
-                <div className="mt-4">
-                  <h4 className="text-neutral-900 text-sm font-black tracking-tight mb-1">
-                    AI Voice Agent
-                  </h4>
-                  <p className="text-neutral-500 font-extrabold text-[11px] leading-relaxed mb-4">
-                    Accept table reservations & phone orders via automated AI voice calls.
-                  </p>
-                  <div className="flex items-baseline">
-                    <span className="text-neutral-950 font-black text-lg">
-                      ₹499
-                    </span>
-                    <span className="text-neutral-500 text-[10px] font-extrabold ml-1.5 uppercase">
-                      / month
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
+
           </div>
 
         </div>
       </section>
 
+      {/* FAQ SECTION */}
+      <section id="faq" className="w-full max-w-4xl px-4 sm:px-6 py-20 flex flex-col items-center relative z-20 border-t border-neutral-100">
+        <span className="text-[#2D3E24] font-black text-xs uppercase tracking-widest mb-2">
+          Have Questions?
+        </span>
+        <h2 className="text-[28px] sm:text-[36px] font-black tracking-tight text-neutral-950 mb-10 text-center leading-tight">
+          Frequently Asked Questions
+        </h2>
+
+        <div className="w-full flex flex-col gap-4">
+          {faqData.map((faq, idx) => {
+            const isOpen = openFaqIdx === idx;
+            return (
+              <div 
+                key={idx}
+                className={`transition-all duration-300 rounded-2xl border ${
+                  isOpen 
+                    ? "bg-white/80 border-neutral-950 shadow-[0_10px_30px_rgba(0,0,0,0.03)]" 
+                    : "bg-white/40 border-[#e5e5e0] hover:bg-white/60"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
+                  className="w-full flex items-center justify-between p-5 text-left cursor-pointer outline-none select-none"
+                >
+                  <div className="flex items-center gap-4">
+                    {/* SVG Icon Box */}
+                    <div className="w-10 h-10 rounded-xl bg-neutral-950/5 flex items-center justify-center flex-shrink-0">
+                      {faq.icon}
+                    </div>
+                    <span className="text-[14.5px] sm:text-base font-black text-neutral-950 leading-tight">
+                      {faq.question}
+                    </span>
+                  </div>
+                  
+                  {/* Chevron Icon */}
+                  <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    className="flex-shrink-0 ml-4 text-neutral-500"
+                  >
+                    <svg className="w-5 h-5 stroke-current fill-none" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </motion.div>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 pb-5 pt-1 border-t border-neutral-100 text-neutral-600 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed pl-[60px]">
+                        {faq.answer}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* CONTACT US SECTION */}
+      <section id="contact" className="w-full max-w-5xl md:max-w-6xl px-4 sm:px-6 py-20 flex flex-col items-center relative z-20 border-t border-neutral-100">
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+          
+          {/* Left Column (renders on top on mobile / left on desktop): Dynamic Call booking Image */}
+          <div className="col-span-12 md:col-span-6 flex items-center justify-center w-full">
+            <div 
+              className="relative w-full rounded-[24px] overflow-hidden border border-white/60 bg-white/20 backdrop-blur-sm shadow-clay-card flex flex-col items-center justify-center text-center p-6 animate-none"
+              style={{
+                aspectRatio: "16 / 9"
+              }}
+            >
+              {!contactImageError ? (
+                <Image
+                  src="/contact-image.png"
+                  alt="Contact Mesa Dines Experts"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 400px"
+                  className="object-cover rounded-[22px]"
+                  onError={() => setContactImageError(true)}
+                />
+              ) : (
+                // Elegant vector fallback representing scheduling a call / experts consult
+                <div className="w-full h-full flex flex-col items-center justify-center p-8 text-neutral-800 relative select-none">
+                  {/* Decorative background circle */}
+                  <div className="absolute inset-10 bg-neutral-950/[0.02] rounded-full blur-2xl" />
+                  
+                  {/* Calendar / Phone Vector Fallback Graphic */}
+                  <svg viewBox="0 0 100 120" className="w-24 h-24 text-[#2D3E24] fill-none stroke-current relative z-10 mb-4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="15" y="20" width="70" height="85" rx="8" strokeWidth="2" fill="white" fillOpacity="0.4" />
+                    <line x1="15" y1="42" x2="85" y2="42" strokeWidth="2" />
+                    <path d="M30 14v12M70 14v12" strokeWidth="3" />
+                    <circle cx="32" cy="58" r="3" fill="currentColor" />
+                    <circle cx="50" cy="58" r="3" fill="currentColor" />
+                    <circle cx="68" cy="58" r="3" fill="currentColor" />
+                    <circle cx="32" cy="74" r="3" fill="currentColor" />
+                    <circle cx="50" cy="74" r="3" fill="currentColor" />
+                    <circle cx="68" cy="74" r="6" className="fill-[#2D3E24] text-white" strokeWidth="0" />
+                    <path d="M66 74l1.5 1.5 2.5-3" stroke="white" strokeWidth="1.5" />
+                    <g transform="translate(10, 75)" className="animate-bounce">
+                      <rect x="0" y="0" width="40" height="25" rx="6" fill="#2D3E24" strokeWidth="0" />
+                      <polygon points="12,25 8,30 16,25" fill="#2D3E24" />
+                      <svg x="10" y="4" width="20" height="16" viewBox="0 0 24 24" fill="white">
+                        <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 0 0-1.02.24l-2.2 2.2a15.1 15.1 0 0 1-6.59-6.59l2.2-2.2c.28-.28.36-.67.24-1.02A11.36 11.36 0 0 1 8.5 4c0-.56-.44-1-1-1H4c-.56 0-1 .44-1 1 0 9.39 7.61 17 17 17 .56 0 1-.44 1-1v-3.5c0-.56-.44-1-1-1z" />
+                      </svg>
+                    </g>
+                  </svg>
+                  <span className="text-neutral-400 font-extrabold text-[10.5px] uppercase tracking-wider max-w-xs relative z-10">
+                    Upload dynamic cover here<br />(Recommended Aspect Ratio 16:9)
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Form */}
+          <div className="col-span-12 md:col-span-6 flex flex-col items-start text-left w-full">
+            <span className="text-[#2D3E24] font-black text-xs uppercase tracking-widest mb-2">
+              Make your business premium now
+            </span>
+            <h2 className="text-[28px] sm:text-[34px] font-black tracking-tight text-neutral-950 mb-6 leading-tight">
+              Schedule a Call with the Experts
+            </h2>
+
+            {formSubmitted ? (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full flex flex-col items-center text-center py-10 px-4 bg-neutral-950/5 rounded-2xl border border-neutral-950/10"
+              >
+                <div className="w-12 h-12 bg-[#2D3E24] text-white rounded-full flex items-center justify-center font-black text-xl mb-4 shadow-sm">
+                  ✓
+                </div>
+                <h3 className="text-lg font-black text-neutral-950 mb-2">Request Received!</h3>
+                <p className="text-neutral-500 font-extrabold text-xs max-w-xs leading-relaxed">
+                  Thanks {contactName} from {contactBusinessName} ({contactCity}). We'll call you on WhatsApp at +91 {contactWhatsApp} shortly.
+                </p>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setFormSubmitted(false);
+                    setContactName("");
+                    setContactWhatsApp("");
+                    setContactBusinessName("");
+                    setContactCity("");
+                    setSelectedInterests([]);
+                  }}
+                  className="mt-6 text-xs font-black text-[#2D3E24] underline hover:text-neutral-900 cursor-pointer"
+                >
+                  Submit another request
+                </button>
+              </motion.div>
+            ) : (
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (contactName && contactWhatsApp && contactBusinessName && contactCity) {
+                    setFormSubmitted(true);
+                  }
+                }}
+                className="w-full flex flex-col gap-5"
+              >
+                {/* Name Input */}
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label htmlFor="contact-name" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase">
+                    Your Name
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    {/* Rounded black div with profile/user icon */}
+                    <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
+                      <svg className="w-[18px] h-[18px] fill-none stroke-current text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                    <input
+                      id="contact-name"
+                      type="text"
+                      required
+                      placeholder="Enter your name"
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                      className="w-full h-[52px] pl-[58px] pr-4 rounded-xl bg-white/60 border border-[#e5e5e0] focus:border-neutral-950 focus:bg-white text-sm font-extrabold text-neutral-950 outline-none transition-all placeholder:text-neutral-400"
+                    />
+                  </div>
+                </div>
+
+                {/* WhatsApp Number Input */}
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label htmlFor="contact-whatsapp" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase">
+                    WhatsApp Number
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    {/* Rounded black div with WhatsApp logo */}
+                    <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
+                      <svg className="w-[18px] h-[18px] fill-current text-white" viewBox="0 0 24 24">
+                        <path d="M12.031 2C6.49 2 2 6.49 2 12.03c0 1.916.536 3.708 1.464 5.253L2 22l4.896-1.282c1.478.807 3.167 1.282 4.966 1.282C17.57 22 22 17.51 22 11.97 22 6.49 17.57 2 12.03 2zm4.335 13.916c-.226.634-1.3 1.238-1.808 1.32-.472.075-1.079.132-3.14-.726-2.632-1.094-4.302-3.793-4.434-3.969-.132-.176-1.079-1.433-1.079-2.736 0-1.302.68-1.943.925-2.207.245-.264.547-.33.725-.33.176 0 .356.006.509.013.162.006.384-.063.597.453.226.547.774 1.887.843 2.025.069.138.113.302.019.49-.094.188-.145.302-.289.471-.145.17-.308.384-.44.516-.151.15-.31.314-.132.616.176.302.78 1.283 1.673 2.075.918.818 1.692 1.076 1.993 1.226.302.151.478.126.66-.088.183-.214.774-.906.981-1.214.208-.308.415-.258.698-.151.283.107 1.792.843 2.1.993.308.15.515.226.59.358.076.132.076.761-.15 1.396z" />
+                      </svg>
+                    </div>
+                    <span className="absolute left-[56px] text-sm font-extrabold text-neutral-400 select-none">
+                      +91
+                    </span>
+                    <input
+                      id="contact-whatsapp"
+                      type="tel"
+                      required
+                      pattern="[0-9]{10}"
+                      placeholder="WhatsApp number"
+                      value={contactWhatsApp}
+                      onChange={(e) => setContactWhatsApp(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      className="w-full h-[52px] pl-[92px] pr-4 rounded-xl bg-white/60 border border-[#e5e5e0] focus:border-neutral-950 focus:bg-white text-sm font-extrabold text-neutral-950 outline-none transition-all placeholder:text-neutral-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Business Name Input */}
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label htmlFor="contact-business" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase">
+                    Business Name
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    {/* Rounded black div with briefcase icon */}
+                    <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
+                      <svg className="w-[18px] h-[18px] fill-none stroke-current text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                      </svg>
+                    </div>
+                    <input
+                      id="contact-business"
+                      type="text"
+                      required
+                      placeholder="Enter your business name"
+                      value={contactBusinessName}
+                      onChange={(e) => setContactBusinessName(e.target.value)}
+                      className="w-full h-[52px] pl-[58px] pr-4 rounded-xl bg-white/60 border border-[#e5e5e0] focus:border-neutral-950 focus:bg-white text-sm font-extrabold text-neutral-950 outline-none transition-all placeholder:text-neutral-400"
+                    />
+                  </div>
+                </div>
+
+                {/* City Input */}
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label htmlFor="contact-city" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase">
+                    City
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    {/* Rounded black div with location pin icon */}
+                    <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
+                      <svg className="w-[18px] h-[18px] fill-none stroke-current text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                    </div>
+                    <input
+                      id="contact-city"
+                      type="text"
+                      required
+                      placeholder="Enter your city"
+                      value={contactCity}
+                      onChange={(e) => setContactCity(e.target.value)}
+                      className="w-full h-[52px] pl-[58px] pr-4 rounded-xl bg-white/60 border border-[#e5e5e0] focus:border-neutral-950 focus:bg-white text-sm font-extrabold text-neutral-950 outline-none transition-all placeholder:text-neutral-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Suggestions / Interests */}
+                <div className="flex flex-col gap-2.5 w-full mt-1">
+                  <span className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase">
+                    I am interested in...
+                  </span>
+                  <div className="flex flex-wrap gap-2 w-full">
+                    {[
+                      "Smart Ordering",
+                      "AI Reviews",
+                      "WhatsApp Automation",
+                      "Voice AI"
+                    ].map((interest) => {
+                      const isSelected = selectedInterests.includes(interest);
+                      return (
+                        <button
+                          key={interest}
+                          type="button"
+                          onClick={() => toggleInterest(interest)}
+                          className={`px-3.5 py-2.5 rounded-xl border text-[11.5px] sm:text-xs font-black cursor-pointer transition-all duration-200 hover:scale-[0.97] active:scale-[0.94] ${
+                            isSelected
+                              ? "bg-neutral-950 text-white border-neutral-950 shadow-sm"
+                              : "bg-white/60 text-neutral-600 border-[#e5e5e0] hover:bg-neutral-100/50 hover:text-neutral-800"
+                          }`}
+                        >
+                          {interest}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Submit button */}
+                <button
+                  type="submit"
+                  disabled={!contactName || !contactWhatsApp || !contactBusinessName || !contactCity}
+                  className="w-full flex items-center justify-center h-[54px] rounded-2xl bg-[#2D3E24] hover:bg-[#202D1A] text-white font-extrabold text-[14px] tracking-wide mt-2 shadow-clay-button transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none hover:scale-[0.98] active:scale-[0.95] cursor-pointer"
+                >
+                  Schedule Call
+                </button>
+              </form>
+            )}
+          </div>
+
+        </div>
+      </section>
+
+      {/* FOOTER SECTION */}
+      <footer className="w-full bg-neutral-950 text-neutral-400 py-12 px-4 md:px-8 border-t border-neutral-800/60 mt-10 relative z-20">
+        <div className="max-w-6xl mx-auto flex flex-col items-start text-left gap-4 pb-8 border-b border-neutral-800/50">
+          
+          {/* Logo */}
+          <div className="bg-white rounded-xl py-1.5 px-3 flex items-center justify-center h-[42px] overflow-hidden select-none">
+            <Image
+              src="/logo.png"
+              alt="Mesa Dines Logo"
+              width={120}
+              height={30}
+              className="object-contain h-[28px] w-auto"
+            />
+          </div>
+
+          {/* Description Para */}
+          <p className="text-neutral-400 text-xs sm:text-[13px] font-extrabold leading-relaxed max-w-lg">
+            Empowering dining brands and premium restaurants with smart QR ordering, automated AI review boosters, and unified restaurant automation solutions.
+          </p>
+        </div>
+
+        {/* Bottom bar: Legal Links & Copyright */}
+        <div className="max-w-6xl mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-extrabold text-neutral-500">
+          <span>
+            © 2026 Mesa Dines. All rights reserved.
+          </span>
+          <div className="flex items-center gap-4 sm:gap-6 flex-wrap justify-center text-neutral-500">
+            <a href="#" onClick={() => setShowDevPage(true)} className="hover:text-white transition-all cursor-pointer">Privacy Policy</a>
+            <a href="#" onClick={() => setShowDevPage(true)} className="hover:text-white transition-all cursor-pointer">Terms of Service</a>
+            <a href="#" onClick={() => setShowDevPage(true)} className="hover:text-white transition-all cursor-pointer">Refund Policy</a>
+          </div>
+        </div>
+      </footer>
+
       <motion.div
         initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        transition={{ delay: 1.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
+        animate={hideSwipeBar ? { y: "100%" } : { y: 0 }}
+        transition={{
+          delay: hideSwipeBar ? 0 : (isMountedRef.current ? 0.1 : 1.3),
+          duration: 0.5,
+          ease: [0.16, 1, 0.3, 1] as const
+        }}
         className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-neutral-200/40 rounded-t-[24px] py-4 px-4 sm:px-6 z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.03)]"
       >
         <div className="max-w-md mx-auto w-full">
@@ -1708,7 +2571,7 @@ export default function Home() {
                   exit={{ opacity: 0 }}
                   className="text-neutral-300 font-extrabold text-[13.5px] sm:text-[14.5px] tracking-wide"
                 >
-                  Swipe to Buy @just ₹999
+                  Swipe to Schedule a Call
                 </motion.span>
               </AnimatePresence>
             </div>
@@ -1742,8 +2605,7 @@ export default function Home() {
               style={{ x: handleX }}
             >
               <svg className="w-[22px] h-[22px] fill-none stroke-current text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <rect x="2" y="5" width="20" height="14" rx="2" ry="2" />
-                <line x1="2" y1="10" x2="22" y2="10" />
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
               </svg>
             </motion.div>
 
