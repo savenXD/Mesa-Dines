@@ -2,13 +2,21 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence, useMotionValue, useAnimation } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+import Navbar from "../components/Navbar";
+import HowItWorks from "../components/HowItWorks";
+import WhyMesa from "../components/WhyMesa";
+import { UpgradesSlider, FAQAccordion } from "../components/DynamicComponents";
+import ContactForm from "../components/ContactForm";
+
+
 export default function Home() {
   // UNIVERSAL IMAGE CONFIGURATION: Change these to style the hero image and its spacing project-wide
-  const heroImageSize = 680; // Maximum width in pixels to fit in one frame on desktop
+  const heroImageSize = 860; // Maximum width in pixels to fit in one frame on desktop
   const heroImageAspectRatio = 0.92; // Height ratio relative to width (e.g. 0.62)
   const heroImageMarginTop = "0px"; // Top margin for the hero image
   const heroImageMarginBottom = "0px"; // Bottom margin for the hero image
@@ -1175,149 +1183,14 @@ export default function Home() {
       {/* Mesh Grid Background (starts from the top and fades out by the end of the Features section) */}
       <div className="absolute top-0 left-0 right-0 h-[220vh] grid-mesh pointer-events-none -z-10" />
 
-      {/* NAVIGATION BAR */}
-      <header className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-10 py-7 flex items-center justify-between z-40 relative">
-        {/* Left Side: Claymorphic Logo Container */}
-        <div className="bg-[#ffffff] rounded-[15px] py-0 px-3 shadow-clay-logo flex items-center justify-center h-[64px] md:h-[76px] min-w-[130px] md:min-w-[175px] overflow-hidden">
-          {!logoError ? (
-            <Image
-              src="/logo.png"
-              alt="Mesa Dines Logo"
-              width={220}
-              height={60}
-              className="object-contain h-[56px] md:h-[66px] w-auto"
-              onError={() => setLogoError(true)}
-              priority
-            />
-          ) : (
-            // Premium Vector Fallback Logo
-            <div className="flex items-center gap-1.5">
-              <svg viewBox="0 0 100 100" className="text-[#2D3E24] fill-current w-[48px] h-[48px] md:w-[60px] md:h-[60px]">
-                <circle cx="50" cy="40" r="30" stroke="#2D3E24" strokeWidth="8" fill="none" />
-                <line x1="10" y1="75" x2="90" y2="75" stroke="#2D3E24" strokeWidth="8" strokeLinecap="round" />
-                <path d="M50 75v15" stroke="#2D3E24" strokeWidth="8" strokeLinecap="round" />
-                <path d="M40 30v15M60 30v15" stroke="#2D3E24" strokeWidth="6" strokeLinecap="round" />
-              </svg>
-              <span className="font-extrabold text-[20px] md:text-[26px] tracking-wider text-[#2D3E24] uppercase">
-                Mesa Dines
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Center: Desktop Navigation Links with sliding pill hover */}
-        <div className="hidden md:flex items-center gap-1 bg-[#ffffff]/80 backdrop-blur-md rounded-[15px] p-1.5 shadow-clay-logo border border-white/40 h-[58px]">
-          {["Home", "How It Works", "Why Mesa", "Problems", "Pricing", "FAQ", "Contact"].map((item, idx) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-              onMouseEnter={() => setHoveredIdx(idx)}
-              onMouseLeave={() => setHoveredIdx(null)}
-              className="relative px-3.5 py-2 rounded-[12px] text-[13.5px] font-extrabold text-neutral-800 transition-colors duration-200 animate-none whitespace-nowrap"
-            >
-              <span className="relative z-10">{item}</span>
-              {hoveredIdx === idx && (
-                <motion.span
-                  layoutId="navHoverPill"
-                  className="absolute inset-0 bg-neutral-950/[0.04] rounded-[10px] shadow-[inset_1px_1px_2px_rgba(0,0,0,0.05),_inset_-1px_-1px_2px_rgba(255,255,255,0.8)]"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
-              )}
-            </a>
-          ))}
-        </div>
-
-        {/* Right Side: Desktop CTA Button / Mobile Hamburger */}
-        <div className="flex items-center gap-3">
-          {/* Desktop CTA */}
-          <a href="#contact" onClick={handleBuyNowClick} className="hidden md:flex items-center justify-center gap-2 bg-neutral-950 text-white rounded-[15px] h-[58px] px-7 text-[15.5px] font-extrabold shadow-clay-button hover:bg-neutral-900 transition-all duration-200 active:scale-[0.97] cursor-pointer">
-            <span>Buy now</span>
-            <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] stroke-current fill-none text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="9" cy="21" r="1" fill="currentColor" />
-              <circle cx="20" cy="21" r="1" fill="currentColor" />
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-            </svg>
-          </a>
-
-          {/* Mobile Hamburger Button */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle Menu"
-            className="md:hidden bg-[#ffffff] rounded-[15px] shadow-clay-logo flex items-center justify-center h-[64px] aspect-square focus:outline-none cursor-pointer relative z-50 hover:bg-neutral-50 transition-all duration-200 active:scale-[0.97]"
-          >
-            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" className="stroke-current text-neutral-900">
-              <motion.path
-                animate={menuOpen ? { d: "M18 6L6 18" } : { d: "M4 7h16" }}
-                transition={{ duration: 0.3 }}
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-              <motion.path
-                animate={menuOpen ? { opacity: 0 } : { opacity: 1 }}
-                transition={{ duration: 0.2 }}
-                d="M4 12h16"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-              <motion.path
-                animate={menuOpen ? { d: "M6 6l12 12" } : { d: "M4 17h16" }}
-                transition={{ duration: 0.3 }}
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-      </header>
-
-      {/* FULLSCREEN OVERLAY MENU */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            variants={menuVariants}
-            initial="closed"
-            animate="opened"
-            exit="closed"
-            className="fixed inset-0 bg-[#f7f7f7]/98 backdrop-blur-md z-30 flex flex-col justify-center px-8 md:px-24"
-          >
-            <div className="absolute inset-0 grid-mesh pointer-events-none -z-10" />
-            <nav className="flex flex-col gap-4 text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-              {["Home", "How It Works", "Why Mesa", "Problems", "Pricing", "FAQ", "Contact"].map((item, idx) => (
-                <motion.a
-                  key={item}
-                  href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-                  variants={menuItemVariants}
-                  custom={idx}
-                  onClick={() => setMenuOpen(false)}
-                  className="hover:text-[#2D3E24] w-fit transition-colors duration-200"
-                >
-                  {item}
-                </motion.a>
-              ))}
-            </nav>
-            <motion.div
-              variants={menuItemVariants}
-              custom={5}
-              className="mt-12 flex flex-col gap-4 max-w-sm"
-            >
-              <a
-                href="#book"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-center gap-3 border border-neutral-950 bg-transparent text-neutral-950 font-bold py-4 px-6 rounded-2xl hover:bg-neutral-900 hover:text-white transition-all duration-200"
-              >
-                <span>Get Started Now</span>
-              </a>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Navbar handleBuyNowClick={handleBuyNowClick} />
 
       {/* HERO SECTION */}
       <main id="home" className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-10 pt-2 pb-12 md:pb-16 flex flex-col items-center flex-grow">
-        <div className="flex flex-col md:grid md:grid-cols-12 w-full gap-y-6 md:gap-y-8 gap-x-8 md:gap-x-12 lg:gap-x-16 items-center mt-6 md:mt-10">
+        <div className="flex flex-col md:flex-row w-full gap-y-6 md:gap-x-10 lg:gap-x-14 items-center justify-center mt-6 md:mt-10">
           
-          {/* Text Column: Heading & Subheading */}
-          <div className="col-span-12 md:col-span-7 order-1 flex flex-col items-center md:items-start text-center md:text-left w-full">
+          {/* Text Column: Heading, Subheading & CTA Buttons */}
+          <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left flex-shrink-0">
             {/* Animated Heading */}
             <motion.div
               variants={containerVariants}
@@ -1397,66 +1270,13 @@ export default function Home() {
             >
               Empower your food business with 5-star restaurant technology. Delight diners, automate tasks, and scale margins effortlessly.
             </motion.p>
-          </div>
 
-          {/* Hero Image */}
-          <div className="col-span-12 md:col-span-5 order-2 md:row-span-2 flex items-center justify-center md:justify-end w-full">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: 0.95, duration: 0.65, ease: [0.25, 1, 0.5, 1] as const }}
-              className="w-full max-w-[500px] md:max-w-[680px] -mt-8 md:mt-0 -mb-7 md:mb-0 flex items-center justify-center relative overflow-hidden pointer-events-none"
-              style={{ 
-                aspectRatio: `1 / ${heroImageAspectRatio}`
-              }}
-            >
-              {!heroError ? (
-                <Image
-                  src="/hero-image.png"
-                  alt="Mesa Dines QR Order Scan"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 680px"
-                  className="object-contain"
-                  onError={() => setHeroError(true)}
-                  priority
-                />
-              ) : (
-                // Premium fall-back vector art representing phone scanning QR code (transparent layout)
-                <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden text-neutral-800">
-                  <svg viewBox="0 56 200 98" className="w-full h-full text-neutral-800" fill="none">
-                    <path d="M40 140l30-80h45l30 80H40z" stroke="currentColor" strokeWidth="3.5" strokeLinejoin="round" fill="none" />
-                    <path d="M50 140l5-15h60l5 15" stroke="currentColor" strokeWidth="3.5" />
-                    <rect x="65" y="80" width="50" height="40" rx="3" stroke="currentColor" strokeWidth="3" />
-                    <path d="M72 87h12v12H72zm0 14h6v6h-6zm14 0h6v6h-6zM88 87h10v10H88zm0 14h6v6h-6z" fill="currentColor" />
-                    <rect x="75" y="125" width="30" height="6" rx="2" fill="currentColor" opacity="0.1" />
-                    
-                    {/* Hand holding phone scanning */}
-                    <g className="animate-pulse">
-                      {/* Shadow scan line */}
-                      <path d="M90 100l35-15" stroke="#25D366" strokeWidth="1.5" strokeDasharray="3 3" />
-                      {/* Phone body */}
-                      <rect x="110" y="60" width="50" height="90" rx="8" transform="rotate(10 135 105)" stroke="currentColor" strokeWidth="3.5" fill="#f7f7f7" />
-                      {/* Phone Screen QR */}
-                      <rect x="118" y="70" width="34" height="60" rx="3" transform="rotate(10 135 105)" stroke="currentColor" strokeWidth="2" />
-                      <rect x="126" y="82" width="16" height="16" transform="rotate(10 135 105)" fill="#25D366" opacity="0.75" />
-                      <circle cx="140" cy="142" r="3" fill="currentColor" />
-                    </g>
-
-                    {/* Scan beam */}
-                    <path d="M90 90 L125 78" stroke="#25D366" strokeWidth="2.5" strokeLinecap="round" />
-                  </svg>
-                </div>
-              )}
-            </motion.div>
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="col-span-12 md:col-span-7 order-3 flex items-center justify-center md:justify-start w-full">
+            {/* CTA Buttons — desktop only (mobile version is below the image) */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.1, duration: 0.5, ease: "easeOut" }}
-              className="flex flex-row gap-3 w-full md:w-auto max-w-sm md:max-w-none justify-center md:justify-start mt-0 items-center mx-auto md:mx-0"
+              className="hidden md:flex flex-row gap-3 w-full md:w-auto max-w-sm md:max-w-none justify-center md:justify-start mt-6 md:mt-8 items-center mx-auto md:mx-0"
             >
               {/* Buy Now */}
               <a href="#contact" onClick={handleBuyNowClick} className="w-1/2 md:w-[175px] relative flex items-center h-[54px] sm:h-[56px] rounded-2xl bg-neutral-950 text-white font-extrabold border border-neutral-950 shadow-clay-button hover:bg-neutral-900 transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] cursor-pointer origin-center">
@@ -1489,264 +1309,126 @@ export default function Home() {
             </motion.div>
           </div>
 
+          {/* Hero Image */}
+          <div className="w-full md:w-1/2 flex items-center justify-center md:justify-end flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: 0.95, duration: 0.65, ease: [0.25, 1, 0.5, 1] as const }}
+              className="w-full flex items-center justify-center relative"
+              style={{
+                aspectRatio: `1 / ${heroImageAspectRatio}`
+              }}
+            >
+              {!heroError ? (
+                <Image
+                  src="/hero-image.png"
+                  alt="Mesa Dines QR Order Scan"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 860px"
+                  className="object-contain"
+                  onError={() => setHeroError(true)}
+                  priority
+                />
+              ) : (
+                // Premium fall-back vector art representing phone scanning QR code (transparent layout)
+                <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden text-neutral-800">
+                  <svg viewBox="0 56 200 98" className="w-full h-full text-neutral-800" fill="none">
+                    <path d="M40 140l30-80h45l30 80H40z" stroke="currentColor" strokeWidth="3.5" strokeLinejoin="round" fill="none" />
+                    <path d="M50 140l5-15h60l5 15" stroke="currentColor" strokeWidth="3.5" />
+                    <rect x="65" y="80" width="50" height="40" rx="3" stroke="currentColor" strokeWidth="3" />
+                    <path d="M72 87h12v12H72zm0 14h6v6h-6zm14 0h6v6h-6zM88 87h10v10H88zm0 14h6v6h-6z" fill="currentColor" />
+                    <rect x="75" y="125" width="30" height="6" rx="2" fill="currentColor" opacity="0.1" />
+                    
+                    {/* Hand holding phone scanning */}
+                    <g className="animate-pulse">
+                      {/* Shadow scan line */}
+                      <path d="M90 100l35-15" stroke="#25D366" strokeWidth="1.5" strokeDasharray="3 3" />
+                      {/* Phone body */}
+                      <rect x="110" y="60" width="50" height="90" rx="8" transform="rotate(10 135 105)" stroke="currentColor" strokeWidth="3.5" fill="#f7f7f7" />
+                      {/* Phone Screen QR */}
+                      <rect x="118" y="70" width="34" height="60" rx="3" transform="rotate(10 135 105)" stroke="currentColor" strokeWidth="2" />
+                      <rect x="126" y="82" width="16" height="16" transform="rotate(10 135 105)" fill="#25D366" opacity="0.75" />
+                      <circle cx="140" cy="142" r="3" fill="currentColor" />
+                    </g>
+
+                    {/* Scan beam */}
+                    <path d="M90 90 L125 78" stroke="#25D366" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </div>
+              )}
+
+              {/* Floating Badge — TOP RIGHT: Reliable */}
+              <div
+                className="flex absolute top-[10%] right-[2%] items-center gap-1.5 md:gap-2.5 bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl px-2.5 py-1.5 md:px-4 md:py-3 pointer-events-none select-none"
+                style={{ animation: "heroFloat1 5s ease-in-out infinite", zIndex: 10 }}
+              >
+                <div className="w-6 h-6 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-neutral-950 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3 h-3 md:w-[18px] md:h-[18px] text-white" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-neutral-950 font-black text-[10px] md:text-[13px] leading-tight">Reliable</span>
+                  <span className="text-neutral-400 font-semibold text-[8px] md:text-[10.5px] leading-tight hidden sm:block">Always on, always working</span>
+                </div>
+              </div>
+
+              {/* Floating Badge — BOTTOM LEFT: Premium */}
+              <div
+                className="flex absolute bottom-[10%] left-[2%] items-center gap-1.5 md:gap-2.5 bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl px-2.5 py-1.5 md:px-4 md:py-3 pointer-events-none select-none"
+                style={{ animation: "heroFloat2 5.5s ease-in-out infinite", zIndex: 10 }}
+              >
+                <div className="w-6 h-6 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-neutral-950 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3 h-3 md:w-[18px] md:h-[18px] text-white" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-neutral-950 font-black text-[10px] md:text-[13px] leading-tight">Premium</span>
+                  <span className="text-neutral-400 font-semibold text-[8px] md:text-[10.5px] leading-tight hidden sm:block">5-star tech, honest price</span>
+                </div>
+              </div>
+
+            </motion.div>
+          </div>
+          {/* CTA Buttons — mobile only, shown below the image */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.1, duration: 0.5, ease: "easeOut" }}
+            className="md:hidden flex flex-row gap-3 w-full max-w-sm justify-center items-center mx-auto"
+          >
+            {/* Buy Now */}
+            <a href="#contact" onClick={handleBuyNowClick} className="w-1/2 relative flex items-center h-[54px] rounded-2xl bg-neutral-950 text-white font-extrabold border border-neutral-950 shadow-clay-button hover:bg-neutral-900 transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] cursor-pointer origin-center">
+              <div className="absolute left-[5px] top-[5px] bottom-[5px] aspect-square bg-white/10 rounded-xl flex items-center justify-center">
+                <svg className="w-[18px] h-[18px] stroke-current fill-none text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <circle cx="9" cy="21" r="1" fill="currentColor" />
+                  <circle cx="20" cy="21" r="1" fill="currentColor" />
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+              </div>
+              <span className="w-full text-center pl-8 text-[13.5px] tracking-wide whitespace-nowrap">Buy Now</span>
+            </a>
+            {/* See Pricing */}
+            <a href="#pricing" className="group w-1/2 relative flex items-center h-[54px] rounded-2xl bg-white text-neutral-950 font-extrabold border border-[#e5e5e0] shadow-clay-card cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[0.96] active:scale-[0.92] origin-center">
+              <div className="absolute inset-0 bg-[#2D3E24] origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-700 ease-[cubic-bezier(0.19,1,0.22,1)]" />
+              <div className="absolute left-[5px] top-[5px] bottom-[5px] aspect-square bg-[#2D3E24] group-hover:bg-white rounded-xl flex items-center justify-center shadow-sm z-10 transition-colors duration-500">
+                <svg className="w-[18px] h-[18px] fill-none stroke-current text-white group-hover:text-[#2D3E24] transition-colors duration-500" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                  <line x1="7" y1="7" x2="7.01" y2="7" />
+                </svg>
+              </div>
+              <span className="relative z-10 w-full text-center pl-8 text-[13.5px] tracking-wide whitespace-nowrap text-neutral-950 group-hover:text-white transition-colors duration-500">See Pricing</span>
+            </a>
+          </motion.div>
+
         </div>
       </main>
 
-      {/* HOW IT WORKS SECTION */}
-      <section id="how-it-works" className="w-full max-w-4xl md:max-w-5xl lg:max-w-6xl px-4 sm:px-6 py-20 flex flex-col items-center relative z-20">
-        
-        {/* Section Heading & Subtitle */}
-        <div className="flex flex-col items-center text-center w-full mb-16">
-          <h2 className="text-[32px] sm:text-[40px] md:text-[46px] font-black tracking-tight text-neutral-950 leading-tight relative overflow-visible inline-block">
-            <span className="relative inline-block">
-              How it works?
-              <span className="absolute left-0 -bottom-2 w-full pointer-events-none">
-                <svg
-                  width="100%"
-                  height="12"
-                  viewBox="0 0 200 12"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="overflow-visible"
-                >
-                  <motion.path
-                    d="M4 8.5C40 4.5 130 4 196 8.5"
-                    stroke="#111111"
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    initial={{ pathLength: 0 }}
-                    whileInView={{ pathLength: 1 }}
-                    viewport={{ once: false, amount: 0.8 }}
-                    transition={{
-                      delay: 0.2,
-                      duration: 0.8,
-                      ease: [0.22, 1, 0.36, 1] as const,
-                    }}
-                  />
-                </svg>
-              </span>
-            </span>
-          </h2>
-          <p className="text-neutral-500 font-extrabold text-[12.5px] sm:text-[14px] leading-[1.4] mt-5 max-w-md tracking-wide">
-            Mesa Dines simplifies your operations from the table to the kitchen. Here is how we make dining seamless for you and your guests.
-          </p>
-        </div>
+      <HowItWorks />
 
-        {/* Features Container */}
-        <div ref={featuresRef} className="relative w-full flex flex-col gap-24 sm:gap-32 md:gap-40 my-8 px-4 features-container">
-          
-          {/* Scroll-Linked Tracing Line */}
-          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-screen pointer-events-none z-10 overflow-visible">
-            <svg 
-              className="w-full h-full"
-              viewBox="0 0 100 100" 
-              preserveAspectRatio="none"
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                ref={pathRef}
-                d="M -10,2 C 10,2, 15,6, 22.5,12.5 C 30,19, 70,25, 77.5,37.5 C 85,50, 15,50, 22.5,62.5 C 30,75, 70,81, 77.5,87.5 C 85,94, 20,98, -10, 98"
-                stroke="#111111"
-                strokeWidth="50"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-          </div>
-
-          {/* 4 Feature Items */}
-          {features.map((feat, index) => {
-            return (
-              <div
-                key={index}
-                className="relative w-full max-w-[540px] md:max-w-none mx-auto md:mx-0 z-20"
-              >
-                <div className={`feature-card-scroll w-full bg-white md:bg-transparent rounded-[28px] p-6 sm:p-8 md:p-8 border border-[#e5e5e0] md:border-transparent transition-all duration-700 ease-out flex flex-col items-start text-left md:items-center md:gap-16 ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
-                  {/* Image Container with overlapping Badge */}
-                  <div 
-                    className="relative w-full max-w-[340px] rounded-[20px] overflow-visible mb-6 md:mb-0 md:w-[480px] md:max-w-[480px] md:flex-shrink-0"
-                    style={{
-                      aspectRatio: `1 / ${featureImageAspectRatio}`
-                    }}
-                  >
-                    {/* Black Circular Overlapping Index Badge */}
-                    <div className="absolute -top-3.5 -left-3.5 w-10 h-10 bg-neutral-950 text-white rounded-full flex items-center justify-center font-black text-lg z-20 shadow-md">
-                      {index + 1}
-                    </div>
-
-                    {!featureErrors[index] ? (
-                      <Image
-                        src={feat.img}
-                        alt={feat.title}
-                        fill
-                        sizes={`(max-width: 768px) 100vw, ${featureImageSize}px`}
-                        className="object-cover rounded-[16px]"
-                        onError={() => handleFeatureError(index)}
-                        priority
-                      />
-                    ) : (
-                      // Fallback visual
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-white/30 backdrop-blur-sm rounded-[16px] border border-white/30">
-                        {feat.fallbackSvg}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Content Below/Beside Image - animated on scroll */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: false, amount: 0.3 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="w-full md:flex-1"
-                  >
-                    <div className="flex items-center gap-2.5 md:gap-4 mb-2.5 md:mb-4 w-full">
-                      <div className="w-8 h-8 md:w-11 md:h-11 bg-neutral-950 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                        {feat.miniSvg}
-                      </div>
-                      <h3 className="text-[20px] sm:text-[22px] md:text-[32px] font-black tracking-tight text-neutral-950 md:leading-tight">
-                        {feat.title}
-                      </h3>
-                    </div>
-                    <p className="text-neutral-500 font-extrabold text-[12px] sm:text-[13px] md:text-[15px] leading-[1.4] md:leading-relaxed max-w-sm md:max-w-md tracking-wide">
-                      {feat.desc}
-                    </p>
-                  </motion.div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* WHY CHOOSE MESA? SECTION WITH GSAP PINNING & HORIZONTAL SCROLL */}
-      <div id="why-mesa" className="w-full block">
-        <section 
-          ref={horizontalSectionRef} 
-          className="relative w-full h-screen overflow-hidden flex flex-col justify-center items-center bg-transparent z-20"
-        >
-          <div className="h-full w-full flex flex-col justify-center py-12 md:py-16 overflow-hidden relative">
-            
-            {/* Static Title (Remains pinned at the top of the viewport) */}
-            <div className="flex flex-col items-center text-center w-full px-6 flex-shrink-0 z-30 mb-8">
-              <h2 className="text-[32px] sm:text-[40px] md:text-[46px] font-black tracking-tight text-neutral-950 leading-tight relative overflow-visible inline-block">
-                <span className="relative inline-block">
-                  Why Choose Mesa?
-                  <span className="absolute left-0 -bottom-2 w-full pointer-events-none">
-                    <svg
-                      width="100%"
-                      height="12"
-                      viewBox="0 0 200 12"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="overflow-visible"
-                    >
-                      <motion.path
-                        d="M4 8.5C40 4.5 130 4 196 8.5"
-                        stroke="#111111"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        initial={{ pathLength: 0 }}
-                        whileInView={{ pathLength: 1 }}
-                        viewport={{ once: false, amount: 0.8 }}
-                        transition={{
-                          delay: 0.2,
-                          duration: 0.8,
-                          ease: [0.22, 1, 0.36, 1] as const,
-                        }}
-                      />
-                    </svg>
-                  </span>
-                </span>
-              </h2>
-              <p className="text-neutral-500 font-extrabold text-[12.5px] sm:text-[14px] leading-[1.4] mt-5 max-w-md tracking-wide">
-                Empower your restaurant with technology that leaves a lasting impression on your customers.
-              </p>
-            </div>
-
-            {/* Sliding Track for Horizontal Scroll */}
-            <div className="w-full flex-grow flex items-center overflow-hidden z-20">
-              <div 
-                ref={horizontalTrackRef} 
-                className="flex flex-row flex-nowrap gap-8 md:gap-16 px-[10vw] md:px-[25vw] min-w-max items-center relative"
-              >
-                {/* GIANT CURVY INTRO TEXT WITH INTEGRATED ANIMATED LINE */}
-                <div className="w-[1100px] sm:w-[1400px] md:w-[1750px] h-[350px] sm:h-[450px] md:h-[550px] flex-shrink-0 select-none pointer-events-none flex items-center justify-center overflow-visible">
-                  <svg viewBox="0 0 1750 500" className="w-full h-full text-[#0a0a0a] fill-current overflow-visible">
-                    <defs>
-                      <path 
-                        id="wavy-text-path" 
-                        d="M 50,250 Q 450,30 875,250 T 1700,250" 
-                      />
-                    </defs>
-                    
-                    {/* CURVY ANIMATED LINE (First element, so it underlays the text) */}
-                    <path
-                      ref={horizontalPathRef}
-                      stroke="#111111"
-                      strokeWidth="6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      fill="none"
-                      transform="translate(0, 135)"
-                    />
-
-                    <text 
-                      fontSize="145" 
-                      fontWeight="900" 
-                      letterSpacing="0.08em" 
-                      className="font-black uppercase"
-                      fontFamily="var(--font-primary), sans-serif"
-                    >
-                      <textPath href="#wavy-text-path" startOffset="4%">
-                        I mean, Why not?
-                      </textPath>
-                    </text>
-                  </svg>
-                </div>
-
-                {/* REASONS CARDS */}
-                {whyChooseMesaCards.map((card, idx) => {
-                  const reasonNum = idx + 1;
-                  return (
-                    <div 
-                      key={idx}
-                      className="mesa-horizontal-card w-[290px] h-[290px] sm:w-[350px] sm:h-[350px] md:w-[420px] md:h-[420px] bg-neutral-950 text-white rounded-[28px] md:rounded-[36px] flex flex-col justify-center p-8 md:p-12 relative overflow-hidden select-none flex-shrink-0 shadow-[20px_20px_60px_rgba(0,0,0,0.15)]"
-                    >
-                      {/* Floating SVGs (Parallax animated on scroll) */}
-                      {card.floaters?.map((floater, fIdx) => (
-                        <div 
-                          key={fIdx} 
-                          className={`absolute pointer-events-none z-10 ${floater.className}`}
-                        >
-                          {floater.svg}
-                        </div>
-                      ))}
-
-                      {/* Card Title & Counter Label */}
-                      <div className="flex flex-col text-left w-full z-20">
-                        <span className="text-[10px] md:text-[12px] font-black text-[#25D366] uppercase tracking-[0.2em] mb-2 opacity-90">
-                          Reason 0{reasonNum}
-                        </span>
-                        <span className="text-[36px] sm:text-[46px] md:text-[58px] font-black tracking-tighter text-white leading-[0.95] uppercase">
-                          {card.titleLine1}
-                        </span>
-                        <span className="text-[36px] sm:text-[46px] md:text-[58px] font-black tracking-tighter text-white leading-[0.95] uppercase mt-1">
-                          {card.titleLine2}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-
-              </div>
-            </div>
-
-          </div>
-        </section>
-      </div>
+      <WhyMesa />
       {/* PROBLEMS MESA DINES SOLVES SECTION */}
       <section id="problems" className="w-full max-w-5xl md:max-w-6xl px-4 sm:px-6 py-20 flex flex-col items-center relative z-20 border-t border-neutral-100">
         <div className="flex flex-col items-center text-center w-full max-w-2xl mb-16">
@@ -2111,453 +1793,14 @@ export default function Home() {
 
           </div>
 
-          {/* OTHER PREMIUM SERVICES (CAROUSEL SLIDESHOW) */}
-          <div className="w-full max-w-4xl mt-12 flex flex-col items-center">
-            
-            {/* Header */}
-            <div className="flex flex-col items-center text-center mb-10">
-              <span className="text-neutral-400 font-black text-xs uppercase tracking-widest mb-1.5">
-                Premium Upgrades
-              </span>
-              <h3 className="text-neutral-950 font-black text-2xl md:text-3xl tracking-tight leading-none">
-                Other Premium Services
-              </h3>
-            </div>
-
-            {/* Carousel Container */}
-            <div ref={carouselRef} className="relative w-full max-w-[340px] sm:max-w-[540px] md:max-w-[760px] overflow-hidden mx-auto px-4 py-4">
-              
-              {/* Carousel Window */}
-              <div className="w-full relative min-h-[465px] flex items-center justify-start bg-transparent overflow-visible">
-                <motion.div 
-                  drag="x"
-                  dragConstraints={{ 
-                    left: getCarouselOffset(2), 
-                    right: getCarouselOffset(0) 
-                  }}
-                  dragElastic={0.2}
-                  onDragEnd={(e, info) => {
-                    const threshold = 55;
-                    if (info.offset.x < -threshold) {
-                      setActiveSlide((prev) => Math.min(prev + 1, 2));
-                    } else if (info.offset.x > threshold) {
-                      setActiveSlide((prev) => Math.max(prev - 1, 0));
-                    }
-                  }}
-                  animate={{ x: getCarouselOffset(activeSlide) }}
-                  transition={{ type: "spring", stiffness: 220, damping: 26 }}
-                  className="flex flex-row flex-nowrap items-stretch gap-4 sm:gap-6 md:gap-8 w-max cursor-grab active:cursor-grabbing overflow-visible select-none"
-                >
-                  {premiumServices.map((service, idx) => (
-                    <div 
-                      key={idx} 
-                      className="w-[300px] sm:w-[380px] md:w-[440px] flex-shrink-0 flex justify-center overflow-visible"
-                    >
-                      <div className="w-full flex flex-col justify-between items-stretch min-h-[365px] text-left border border-neutral-950/15 rounded-[32px] p-5 md:p-7 bg-white shadow-xl shadow-black/5 relative overflow-hidden transition-all duration-300">
-                        
-                        {/* Top half */}
-                        <div>
-                          {/* Header section (Icon + Title & Price) */}
-                          <div className="flex items-center justify-between gap-4 mb-4">
-                            
-                            {/* Dark Wrapper Icon Div */}
-                            <div className="w-12 h-12 bg-neutral-950 text-white rounded-2xl flex items-center justify-center p-3 border border-neutral-800 shadow-md flex-shrink-0">
-                              {service.icon}
-                            </div>
-                            
-                            {/* Price Badge */}
-                            <div className="flex items-baseline bg-neutral-900/5 px-3 py-1.5 rounded-xl border border-neutral-950/5">
-                              <span className="text-neutral-950 font-black text-base">
-                                ₹{service.price}
-                              </span>
-                              <span className="text-neutral-500 text-[9px] font-black uppercase ml-1">
-                                / {service.period}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Title & Description */}
-                          <h4 className="text-neutral-900 text-base font-black tracking-tight mb-1">
-                            {service.title}
-                          </h4>
-                          <p className="text-neutral-500 font-extrabold text-[11px] leading-relaxed mb-4">
-                            {service.desc}
-                          </p>
-
-                          {/* Feature Bullets Grid (4 points) */}
-                          <div className="flex flex-col gap-2 mb-5">
-                            {service.features.map((feat, fIdx) => (
-                              <div key={fIdx} className="flex items-start gap-2.5">
-                                {feat.icon}
-                                <span className="text-[11px] font-extrabold text-neutral-600 tracking-wide leading-tight">
-                                  {feat.text}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Buy Now CTA Button */}
-                        <button onClick={handleBuyNowClick} className="w-full flex items-center justify-center bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 rounded-2xl transition-all duration-300 group shadow-md shadow-black/10 cursor-pointer">
-                          <span>Buy Now</span>
-                        </button>
-
-                      </div>
-                    </div>
-                  ))}
-                </motion.div>
-              </div>
-
-              {/* Navigation Dots */}
-              <div className="flex justify-center gap-2 mt-6">
-                {[0, 1, 2].map((idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveSlide(idx)}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${activeSlide === idx ? "bg-neutral-950 w-6" : "bg-neutral-300/80 hover:bg-neutral-400"}`}
-                  />
-                ))}
-              </div>
-
-            </div>
-
-          </div>
+          <UpgradesSlider handleBuyNowClick={handleBuyNowClick} />
 
         </div>
       </section>
 
-      {/* FAQ SECTION */}
-      <section id="faq" className="w-full max-w-4xl px-4 sm:px-6 py-20 flex flex-col items-center relative z-20 border-t border-neutral-100">
-        <span className="text-[#2D3E24] font-black text-xs uppercase tracking-widest mb-2">
-          Have Questions?
-        </span>
-        <h2 className="text-[28px] sm:text-[36px] font-black tracking-tight text-neutral-950 mb-10 text-center leading-tight">
-          Frequently Asked Questions
-        </h2>
+      <FAQAccordion />
 
-        <div className="w-full flex flex-col gap-4">
-          {faqData.map((faq, idx) => {
-            const isOpen = openFaqIdx === idx;
-            return (
-              <div 
-                key={idx}
-                className={`transition-all duration-300 rounded-2xl border ${
-                  isOpen 
-                    ? "bg-white/80 border-neutral-950 shadow-[0_10px_30px_rgba(0,0,0,0.03)]" 
-                    : "bg-white/40 border-[#e5e5e0] hover:bg-white/60"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
-                  className="w-full flex items-center justify-between p-5 text-left cursor-pointer outline-none select-none"
-                >
-                  <div className="flex items-center gap-4">
-                    {/* SVG Icon Box */}
-                    <div className="w-10 h-10 rounded-xl bg-neutral-950/5 flex items-center justify-center flex-shrink-0">
-                      {faq.icon}
-                    </div>
-                    <span className="text-[14.5px] sm:text-base font-black text-neutral-950 leading-tight">
-                      {faq.question}
-                    </span>
-                  </div>
-                  
-                  {/* Chevron Icon */}
-                  <motion.div
-                    animate={{ rotate: isOpen ? 180 : 0 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="flex-shrink-0 ml-4 text-neutral-500"
-                  >
-                    <svg className="w-5 h-5 stroke-current fill-none" strokeWidth="2.5" viewBox="0 0 24 24">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </motion.div>
-                </button>
-
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-5 pb-5 pt-1 border-t border-neutral-100 text-neutral-600 font-extrabold text-[13.5px] sm:text-[14.5px] leading-relaxed pl-[60px]">
-                        {faq.answer}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* CONTACT US SECTION */}
-      <section id="contact" className="w-full max-w-5xl md:max-w-6xl px-4 sm:px-6 py-20 flex flex-col items-center relative z-20 border-t border-neutral-100">
-        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
-          
-          {/* Left Column (renders on top on mobile / left on desktop): Dynamic Call booking Image */}
-          <div className="col-span-12 md:col-span-6 flex items-center justify-center md:justify-end w-full">
-            <div 
-              className="relative w-full rounded-[24px] overflow-hidden border border-white/60 bg-white/20 backdrop-blur-sm shadow-clay-card flex flex-col items-center justify-center text-center p-6 animate-none"
-              style={{
-                aspectRatio: "16 / 9",
-                minHeight: "180px",
-                width: contactElementWidthPercent,
-                maxWidth: "100%",
-                position: "relative",
-                left: isSmallScreen ? contactSmallScreenShiftX : "0px"
-              }}
-            >
-              {!contactImageError ? (
-                <Image
-                  src="/contact-image.png"
-                  alt="Contact Mesa Dines Experts"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 400px"
-                  className="object-cover rounded-[22px]"
-                  onError={() => setContactImageError(true)}
-                />
-              ) : (
-                // Elegant vector fallback representing scheduling a call / experts consult
-                <div className="w-full h-full flex flex-col items-center justify-center p-8 text-neutral-800 relative select-none">
-                  {/* Decorative background circle */}
-                  <div className="absolute inset-10 bg-neutral-950/[0.02] rounded-full blur-2xl" />
-                  
-                  {/* Calendar / Phone Vector Fallback Graphic */}
-                  <svg viewBox="0 0 100 120" className="w-24 h-24 text-[#2D3E24] fill-none stroke-current relative z-10 mb-4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="15" y="20" width="70" height="85" rx="8" strokeWidth="2" fill="white" fillOpacity="0.4" />
-                    <line x1="15" y1="42" x2="85" y2="42" strokeWidth="2" />
-                    <path d="M30 14v12M70 14v12" strokeWidth="3" />
-                    <circle cx="32" cy="58" r="3" fill="currentColor" />
-                    <circle cx="50" cy="58" r="3" fill="currentColor" />
-                    <circle cx="68" cy="58" r="3" fill="currentColor" />
-                    <circle cx="32" cy="74" r="3" fill="currentColor" />
-                    <circle cx="50" cy="74" r="3" fill="currentColor" />
-                    <circle cx="68" cy="74" r="6" className="fill-[#2D3E24] text-white" strokeWidth="0" />
-                    <path d="M66 74l1.5 1.5 2.5-3" stroke="white" strokeWidth="1.5" />
-                    <g transform="translate(10, 75)" className="animate-bounce">
-                      <rect x="0" y="0" width="40" height="25" rx="6" fill="#2D3E24" strokeWidth="0" />
-                      <polygon points="12,25 8,30 16,25" fill="#2D3E24" />
-                      <svg x="10" y="4" width="20" height="16" viewBox="0 0 24 24" fill="white">
-                        <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 0 0-1.02.24l-2.2 2.2a15.1 15.1 0 0 1-6.59-6.59l2.2-2.2c.28-.28.36-.67.24-1.02A11.36 11.36 0 0 1 8.5 4c0-.56-.44-1-1-1H4c-.56 0-1 .44-1 1 0 9.39 7.61 17 17 17 .56 0 1-.44 1-1v-3.5c0-.56-.44-1-1-1z" />
-                      </svg>
-                    </g>
-                  </svg>
-                  <span className="text-neutral-400 font-extrabold text-[10.5px] uppercase tracking-wider max-w-xs relative z-10">
-                    Upload dynamic cover here<br />(Recommended Aspect Ratio 16:9)
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column: Form */}
-          <div 
-            className="col-span-12 md:col-span-6 flex flex-col items-start text-left w-full mx-auto md:mx-0"
-            style={{ 
-              width: contactElementWidthPercent,
-              maxWidth: "100%",
-              position: "relative",
-              left: isSmallScreen ? contactSmallScreenShiftX : "0px"
-            }}
-          >
-            <span className="text-[#2D3E24] font-black text-xs uppercase tracking-widest mb-2 text-left w-full">
-              Make your business premium now
-            </span>
-            <h2 className="text-[22px] sm:text-[28px] md:text-[34px] font-black tracking-tight text-neutral-950 mb-6 leading-tight w-full text-left">
-              Schedule a Call with the Experts
-            </h2>
-
-            {formSubmitted ? (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="w-full flex flex-col items-center text-center py-10 px-4 bg-neutral-950/5 rounded-2xl border border-neutral-950/10"
-              >
-                <div className="w-12 h-12 bg-[#2D3E24] text-white rounded-full flex items-center justify-center font-black text-xl mb-4 shadow-sm">
-                  ✓
-                </div>
-                <h3 className="text-lg font-black text-neutral-950 mb-2">Request Received!</h3>
-                <p className="text-neutral-500 font-extrabold text-xs max-w-xs w-full leading-relaxed">
-                  Thanks {contactName} from {contactBusinessName} ({contactCity}). We'll call you on WhatsApp at +91 {contactWhatsApp} shortly.
-                </p>
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setFormSubmitted(false);
-                    setContactName("");
-                    setContactWhatsApp("");
-                    setContactBusinessName("");
-                    setContactCity("");
-                    setSelectedInterests([]);
-                  }}
-                  className="mt-6 text-xs font-black text-[#2D3E24] underline hover:text-neutral-900 cursor-pointer"
-                >
-                  Submit another request
-                </button>
-              </motion.div>
-            ) : (
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (contactName && contactWhatsApp && contactBusinessName && contactCity) {
-                    setFormSubmitted(true);
-                  }
-                }}
-                className="w-full flex flex-col gap-5"
-              >
-                {/* Name Input */}
-                <div className="flex flex-col gap-1.5 w-full items-start text-left">
-                  <label htmlFor="contact-name" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase text-left w-full">
-                    Your Name
-                  </label>
-                  <div className="relative w-full">
-                    {/* Rounded black div with profile/user icon */}
-                    <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
-                      <svg className="w-[18px] h-[18px] fill-none stroke-current text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                    </div>
-                    <input
-                      id="contact-name"
-                      type="text"
-                      required
-                      placeholder="Enter your name"
-                      value={contactName}
-                      onChange={(e) => setContactName(e.target.value)}
-                      className="w-full h-[52px] pl-[58px] pr-4 rounded-xl bg-white/60 border border-[#e5e5e0] focus:border-neutral-950 focus:bg-white text-sm font-extrabold text-neutral-950 outline-none transition-all placeholder:text-neutral-400"
-                    />
-                  </div>
-                </div>
-
-                {/* WhatsApp Number Input */}
-                <div className="flex flex-col gap-1.5 w-full items-start text-left">
-                  <label htmlFor="contact-whatsapp" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase text-left w-full">
-                    WhatsApp Number
-                  </label>
-                  <div className="relative w-full">
-                    {/* Rounded black div with WhatsApp logo */}
-                    <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm z-10">
-                      <svg className="w-[18px] h-[18px] fill-current text-white" viewBox="0 0 24 24">
-                        <path d="M12.031 2C6.49 2 2 6.49 2 12.03c0 1.916.536 3.708 1.464 5.253L2 22l4.896-1.282c1.478.807 3.167 1.282 4.966 1.282C17.57 22 22 17.51 22 11.97 22 6.49 17.57 2 12.03 2zm4.335 13.916c-.226.634-1.3 1.238-1.808 1.32-.472.075-1.079.132-3.14-.726-2.632-1.094-4.302-3.793-4.434-3.969-.132-.176-1.079-1.433-1.079-2.736 0-1.302.68-1.943.925-2.207.245-.264.547-.33.725-.33.176 0 .356.006.509.013.162.006.384-.063.597.453.226.547.774 1.887.843 2.025.069.138.113.302.019.49-.094.188-.145.302-.289.471-.145.17-.308.384-.44.516-.151.15-.31.314-.132.616.176.302.78 1.283 1.673 2.075.918.818 1.692 1.076 1.993 1.226.302.151.478.126.66-.088.183-.214.774-.906.981-1.214.208-.308.415-.258.698-.151.283.107 1.792.843 2.1.993.308.15.515.226.59.358.076.132.076.761-.15 1.396z" />
-                      </svg>
-                    </div>
-                    <span className="absolute left-[56px] top-1/2 -translate-y-1/2 text-sm font-extrabold text-neutral-400 select-none z-10">
-                      +91
-                    </span>
-                    <input
-                      id="contact-whatsapp"
-                      type="tel"
-                      required
-                      pattern="[0-9]{10}"
-                      placeholder="WhatsApp number"
-                      value={contactWhatsApp}
-                      onChange={(e) => setContactWhatsApp(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                      className="w-full h-[52px] pl-[92px] pr-4 rounded-xl bg-white/60 border border-[#e5e5e0] focus:border-neutral-950 focus:bg-white text-sm font-extrabold text-neutral-950 outline-none transition-all placeholder:text-neutral-400"
-                    />
-                  </div>
-                </div>
-
-                {/* Business Name Input */}
-                <div className="flex flex-col gap-1.5 w-full items-start text-left">
-                  <label htmlFor="contact-business" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase text-left w-full">
-                    Business Name
-                  </label>
-                  <div className="relative w-full">
-                    {/* Rounded black div with briefcase icon */}
-                    <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
-                      <svg className="w-[18px] h-[18px] fill-none stroke-current text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                      </svg>
-                    </div>
-                    <input
-                      id="contact-business"
-                      type="text"
-                      required
-                      placeholder="Enter your business name"
-                      value={contactBusinessName}
-                      onChange={(e) => setContactBusinessName(e.target.value)}
-                      className="w-full h-[52px] pl-[58px] pr-4 rounded-xl bg-white/60 border border-[#e5e5e0] focus:border-neutral-950 focus:bg-white text-sm font-extrabold text-neutral-950 outline-none transition-all placeholder:text-neutral-400"
-                    />
-                  </div>
-                </div>
-
-                {/* City Input */}
-                <div className="flex flex-col gap-1.5 w-full items-start text-left">
-                  <label htmlFor="contact-city" className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase text-left w-full">
-                    City
-                  </label>
-                  <div className="relative w-full">
-                    {/* Rounded black div with location pin icon */}
-                    <div className="absolute left-[6px] top-[6px] bottom-[6px] w-[40px] bg-neutral-950 rounded-lg flex items-center justify-center shadow-sm">
-                      <svg className="w-[18px] h-[18px] fill-none stroke-current text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                        <circle cx="12" cy="10" r="3" />
-                      </svg>
-                    </div>
-                    <input
-                      id="contact-city"
-                      type="text"
-                      required
-                      placeholder="Enter your city"
-                      value={contactCity}
-                      onChange={(e) => setContactCity(e.target.value)}
-                      className="w-full h-[52px] pl-[58px] pr-4 rounded-xl bg-white/60 border border-[#e5e5e0] focus:border-neutral-950 focus:bg-white text-sm font-extrabold text-neutral-950 outline-none transition-all placeholder:text-neutral-400"
-                    />
-                  </div>
-                </div>
-
-                {/* Suggestions / Interests */}
-                <div className="flex flex-col gap-2.5 w-full mt-1 items-start text-left">
-                  <span className="text-neutral-500 font-extrabold text-xs tracking-wide uppercase text-left w-full">
-                    I am interested in...
-                  </span>
-                  <div className="flex flex-wrap gap-2 w-full">
-                    {[
-                      "Smart Ordering",
-                      "AI Reviews",
-                      "WhatsApp Automation",
-                      "Voice AI"
-                    ].map((interest) => {
-                      const isSelected = selectedInterests.includes(interest);
-                      return (
-                        <button
-                          key={interest}
-                          type="button"
-                          onClick={() => toggleInterest(interest)}
-                          className={`flex-shrink-0 px-3.5 py-2.5 rounded-xl border text-[11.5px] font-black cursor-pointer transition-all duration-200 hover:scale-[0.97] active:scale-[0.94] flex items-center justify-center text-center ${
-                            isSelected
-                              ? "bg-neutral-950 text-white border-neutral-950 shadow-sm"
-                              : "bg-white/60 text-neutral-600 border-[#e5e5e0] hover:bg-neutral-100/50 hover:text-neutral-800"
-                          }`}
-                        >
-                          {interest}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Submit button */}
-                <button
-                  type="submit"
-                  disabled={!contactName || !contactWhatsApp || !contactBusinessName || !contactCity}
-                  className="w-full flex items-center justify-center h-[54px] rounded-2xl bg-[#2D3E24] hover:bg-[#202D1A] text-white font-extrabold text-[14px] tracking-wide mt-2 shadow-clay-button transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none hover:scale-[0.98] active:scale-[0.95] cursor-pointer"
-                >
-                  Schedule Call
-                </button>
-              </form>
-            )}
-          </div>
-
-        </div>
-      </section>
+      <ContactForm onVisibilityChange={(isVisible) => setHideSwipeBar(isVisible)} />
 
       {/* FOOTER SECTION */}
       <footer className="w-full bg-neutral-950 text-neutral-400 py-12 px-4 md:px-8 border-t border-neutral-800/60 mt-10 relative z-20">
@@ -2586,9 +1829,9 @@ export default function Home() {
             © 2026 Mesa Dines. All rights reserved.
           </span>
           <div className="flex items-center gap-4 sm:gap-6 flex-wrap justify-center text-neutral-500">
-            <a href="#" onClick={() => setShowDevPage(true)} className="hover:text-white transition-all cursor-pointer">Privacy Policy</a>
-            <a href="#" onClick={() => setShowDevPage(true)} className="hover:text-white transition-all cursor-pointer">Terms of Service</a>
-            <a href="#" onClick={() => setShowDevPage(true)} className="hover:text-white transition-all cursor-pointer">Refund Policy</a>
+            <Link href="/privacy-policy" className="hover:text-white transition-all cursor-pointer">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition-all cursor-pointer">Terms of Service</Link>
+            <Link href="/refund-policy" className="hover:text-white transition-all cursor-pointer">Refund Policy</Link>
           </div>
         </div>
       </footer>
