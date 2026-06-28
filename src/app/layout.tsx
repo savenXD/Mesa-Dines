@@ -51,6 +51,15 @@ export default function RootLayout({
       lang="en"
       className={`${fontPrimary.variable} h-full antialiased`}
     >
+      {/* Preload LCP hero image — page.tsx is client-only so the browser */}
+      {/* wouldn't discover this URL until JS hydrates. This server-side   */}
+      {/* hint tells the browser to fetch it immediately from raw HTML.    */}
+      <link
+        rel="preload"
+        as="image"
+        href="/_next/image?url=%2Fhero-image.png&w=750&q=75"
+        fetchPriority="high"
+      />
       <body className="min-h-full flex flex-col font-sans">
         <JsonLd />
         {children}

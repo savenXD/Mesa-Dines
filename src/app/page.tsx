@@ -1315,7 +1315,7 @@ export default function Home() {
                   src="/hero-image.png"
                   alt="Mesa Dines QR Order Scan"
                   fill
-                  sizes="(max-width: 768px) 100vw, 860px"
+                  sizes="(max-width: 480px) 95vw, (max-width: 768px) 100vw, 860px"
                   className="object-contain"
                   onError={() => setHeroError(true)}
                   priority

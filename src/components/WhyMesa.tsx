@@ -402,6 +402,14 @@ export default function WhyMesa() {
 
   return (
     <div id="why-mesa" className="w-full block">
+      <style>{`
+        @media (min-width: 768px) {
+          .smile-desktop-override {
+            x: 1290px !important;
+            y: 60px !important;
+          }
+        }
+      `}</style>
       <section 
         ref={horizontalSectionRef} 
         className="relative w-full h-screen overflow-hidden flex flex-col justify-center items-center bg-transparent z-20"
@@ -449,7 +457,7 @@ export default function WhyMesa() {
           <div className="w-full flex-grow flex items-center overflow-hidden z-20 md:mt-28">
             <div 
               ref={horizontalTrackRef} 
-              className="flex flex-row flex-nowrap gap-8 md:gap-16 pr-[10vw] md:pr-[25vw] pl-0 min-w-max items-center relative"
+              className="hz-track flex flex-row flex-nowrap gap-8 md:gap-16 pr-[10vw] md:pr-[25vw] pl-0 min-w-max items-center relative"
             >
               {/* GIANT CURVY INTRO TEXT WITH INTEGRATED ANIMATED LINE */}
               <div className="h-[350px] sm:h-[450px] md:h-[450px] w-[calc(1400px+10vw)] md:w-[calc(1750px+25vw)] flex-shrink-0 select-none pointer-events-none flex items-center justify-start overflow-visible">
@@ -478,6 +486,7 @@ export default function WhyMesa() {
                     letterSpacing="0.08em" 
                     className="font-black uppercase"
                     fontFamily="var(--font-primary), sans-serif"
+                    style={{ zIndex: 1 }}
                   >
                     <textPath href="#wavy-text-path" startOffset="4%">
                       I mean, Why not?
@@ -491,7 +500,8 @@ export default function WhyMesa() {
                     y="130" 
                     width="110" 
                     height="110" 
-                    className="animate-float-slow"
+                    className="animate-float-slow smile-desktop-override"
+                    style={{ zIndex: 10, position: "relative" }}
                   />
                 </svg>
               </div>

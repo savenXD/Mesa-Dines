@@ -402,10 +402,9 @@ export default function HowItWorks() {
                       src={feat.img}
                       alt={feat.title}
                       fill
-                      sizes={`(max-width: 768px) 100vw, ${featureImageSize}px`}
+                      sizes={`(max-width: 480px) 90vw, (max-width: 768px) 100vw, ${featureImageSize}px`}
                       className="object-cover rounded-[16px]"
                       onError={() => handleFeatureError(index)}
-                      priority
                     />
                   ) : (
                     // Fallback visual

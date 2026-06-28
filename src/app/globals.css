@@ -88,5 +88,28 @@ body {
   50%       { transform: translateY(10px); }
 }
 
+/* ─── Performance: GPU-layer hints for GSAP & CSS animated elements ───────── */
+/* will-change tells the browser to promote these to their own composite layer  */
+/* BEFORE animation starts, eliminating forced reflows. No visual change.      */
 
+.scroll-fade {
+  will-change: transform, opacity;
+}
 
+.floating-element {
+  will-change: transform, opacity;
+}
+
+.animate-float-slow,
+.animate-float-medium,
+.animate-float-fast {
+  will-change: transform;
+}
+
+.hz-track {
+  will-change: transform;
+}
+
+.feature-card-scroll {
+  will-change: transform, opacity;
+}
