@@ -1,45 +1,16 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion } from "framer-motion";
+import React from "react";
 
 interface UpgradesSliderProps {
   handleBuyNowClick: (e: React.MouseEvent) => void;
 }
 
 export default function UpgradesSlider({ handleBuyNowClick }: UpgradesSliderProps) {
-  const [activeSlide, setActiveSlide] = useState(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
-
-  const getCarouselOffset = (index: number) => {
-    if (typeof window === "undefined") return 0;
-    const width = window.innerWidth;
-    const container = carouselRef.current;
-    
-    let cardWidth = 300;
-    let gap = 16;
-    let containerWidth = container ? container.clientWidth : (width - 32);
-
-    if (width >= 768) {
-      cardWidth = 440;
-      gap = 32;
-      if (!container) containerWidth = 760;
-    } else if (width >= 640) {
-      cardWidth = 380;
-      gap = 24;
-      if (!container) containerWidth = 540;
-    } else {
-      if (!container) containerWidth = 340;
-    }
-    
-    const offset = (containerWidth / 2) - (cardWidth / 2) - (index * (cardWidth + gap)) - 16;
-    return offset;
-  };
-
   const premiumServices = [
     {
       title: "Google Review Booster",
-      price: "199",
+      price: "182",
       period: "month",
       desc: "Get more stars and rank higher on Google search results.",
       icon: (
@@ -199,109 +170,72 @@ export default function UpgradesSlider({ handleBuyNowClick }: UpgradesSliderProp
         </h3>
       </div>
 
-      {/* Carousel Container (Mobile / Tablet Only) */}
-      <div ref={carouselRef} className="lg:hidden relative w-full max-w-[340px] sm:max-w-[540px] md:max-w-[760px] overflow-hidden mx-auto px-4 py-4">
-        
-        {/* Carousel Window */}
-        <div className="w-full relative min-h-[465px] flex items-center justify-start bg-transparent overflow-visible">
-          <motion.div 
-            drag="x"
-            dragConstraints={{ 
-              left: getCarouselOffset(2), 
-              right: getCarouselOffset(0) 
-            }}
-            dragElastic={0.2}
-            onDragEnd={(e, info) => {
-              const threshold = 55;
-              if (info.offset.x < -threshold) {
-                setActiveSlide((prev) => Math.min(prev + 1, 2));
-              } else if (info.offset.x > threshold) {
-                setActiveSlide((prev) => Math.max(prev - 1, 0));
-              }
-            }}
-            animate={{ x: getCarouselOffset(activeSlide) }}
-            transition={{ type: "spring", stiffness: 220, damping: 26 }}
-            className="flex flex-row flex-nowrap items-stretch gap-4 sm:gap-6 md:gap-8 w-max cursor-grab active:cursor-grabbing overflow-visible select-none"
-          >
-            {premiumServices.map((service, idx) => (
-              <div 
-                key={idx} 
-                className="w-[300px] sm:w-[380px] md:w-[440px] flex-shrink-0 flex justify-center overflow-visible"
-              >
-                <div className="w-full flex flex-col justify-between items-stretch min-h-[365px] text-left border border-neutral-950/15 rounded-[32px] p-5 md:p-7 bg-white shadow-xl shadow-black/5 relative overflow-hidden transition-all duration-300">
-                  
-                  {/* Top half */}
-                  <div>
-                    {/* Header section (Icon + Title & Price) */}
-                    <div className="flex items-center justify-between gap-4 mb-4">
-                      
-                      {/* Dark Wrapper Icon Div */}
-                      <div className="w-12 h-12 bg-neutral-950 text-white rounded-2xl flex items-center justify-center p-3 border border-neutral-800 shadow-md flex-shrink-0">
-                        {service.icon}
-                      </div>
-                      
-                      {/* Price Badge */}
-                      <div className="flex items-baseline bg-neutral-900/5 px-3 py-1.5 rounded-xl border border-neutral-950/5">
-                        <span className="text-neutral-950 font-black text-base">
-                          ₹{service.price}
-                        </span>
-                        <span className="text-neutral-500 text-[9px] font-black uppercase ml-1">
-                          / {service.period}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Title & Description */}
-                    <h4 className="text-neutral-900 text-base font-black tracking-tight mb-1">
-                      {service.title}
-                    </h4>
-                    <p className="text-neutral-500 font-extrabold text-[11px] leading-relaxed mb-4">
-                      {service.desc}
-                    </p>
-
-                    {/* Feature Bullets Grid (4 points) */}
-                    <div className="flex flex-col gap-2 mb-5">
-                      {service.features.map((feat, fIdx) => (
-                        <div key={fIdx} className="flex items-start gap-2.5">
-                          {feat.icon}
-                          <span className="text-[11px] font-extrabold text-neutral-600 tracking-wide leading-tight">
-                            {feat.text}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Buy Now CTA Button */}
-                  <button onClick={handleBuyNowClick} className="w-full flex items-center justify-center bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 rounded-2xl transition-all duration-300 group shadow-md shadow-black/10 cursor-pointer">
-                    <span>Buy Now</span>
-                  </button>
-
-                </div>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* Navigation Dots */}
-        <div className="flex justify-center gap-2 mt-6">
-          {[0, 1, 2].map((idx) => (
-            <button
-              key={idx}
-              onClick={() => setActiveSlide(idx)}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${activeSlide === idx ? "bg-neutral-950 w-6" : "bg-neutral-300/80 hover:bg-neutral-400"}`}
-            />
-          ))}
-        </div>
-
-      </div>
-
-      {/* Desktop Row Layout (Lg Screens and Above) */}
-      <div className="hidden lg:flex lg:flex-row lg:justify-center lg:items-stretch lg:gap-6 xl:gap-8 lg:w-full lg:max-w-[1600px] lg:px-2 lg:py-4">
+      <div className="lg:hidden flex flex-col items-center gap-6 w-full px-2 py-4">
         {premiumServices.map((service, idx) => (
           <div 
             key={idx} 
-            className="w-[31%] min-w-[320px] max-w-[500px] flex justify-center overflow-visible"
+            className="w-full max-w-[540px] sm:max-w-[640px] md:max-w-[750px] flex justify-center overflow-visible"
+          >
+            <div className="w-full flex flex-col justify-between items-stretch min-h-[365px] text-left border border-neutral-950/15 rounded-[32px] p-6 sm:p-7 bg-white shadow-xl shadow-black/5 relative overflow-hidden transition-all duration-300">
+              
+              {/* Top half */}
+              <div>
+                {/* Header section (Icon + Title & Price) */}
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  
+                  {/* Dark Wrapper Icon Div */}
+                  <div className="w-12 h-12 bg-neutral-950 text-white rounded-2xl flex items-center justify-center p-3 border border-neutral-800 shadow-md flex-shrink-0">
+                    {service.icon}
+                  </div>
+                  
+                  {/* Price Badge */}
+                  <div className="flex items-baseline bg-neutral-900/5 px-3 py-1.5 rounded-xl border border-neutral-950/5">
+                    <span className="text-neutral-950 font-black text-base">
+                      ₹{service.price}
+                    </span>
+                    <span className="text-neutral-500 text-[9px] font-black uppercase ml-1">
+                      / {service.period}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Title & Description */}
+                <h4 className="text-neutral-900 text-base font-black tracking-tight mb-1">
+                  {service.title}
+                </h4>
+                <p className="text-neutral-500 font-extrabold text-[11px] leading-relaxed mb-4">
+                  {service.desc}
+                </p>
+
+                {/* Feature Bullets Grid (4 points) */}
+                <div className="flex flex-col gap-2 mb-5">
+                  {service.features.map((feat, fIdx) => (
+                    <div key={fIdx} className="flex items-start gap-2.5">
+                      {feat.icon}
+                      <span className="text-[11px] font-extrabold text-neutral-600 tracking-wide leading-tight">
+                        {feat.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Buy Now CTA Button */}
+              <button onClick={handleBuyNowClick} className="w-full flex items-center justify-center bg-neutral-950 hover:bg-neutral-900 text-white font-extrabold text-xs tracking-wider uppercase py-3.5 rounded-2xl transition-all duration-300 group shadow-md shadow-black/10 cursor-pointer">
+                <span>Buy Now</span>
+              </button>
+
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Row Layout (Lg Screens and Above) */}
+      <div className="hidden lg:flex lg:flex-row lg:justify-center lg:items-stretch lg:gap-6 xl:gap-8 lg:w-full lg:max-w-[1800px] lg:px-2 lg:py-4">
+        {premiumServices.map((service, idx) => (
+          <div 
+            key={idx} 
+            className="w-[33%] min-w-[370px] max-w-[650px] flex justify-center overflow-visible"
           >
             <div className="w-full flex flex-col justify-between items-stretch min-h-[365px] lg:min-h-[420px] text-left border border-neutral-950/15 rounded-[32px] p-5 md:p-7 bg-white shadow-xl shadow-black/5 relative overflow-hidden hover:scale-[1.02] hover:shadow-2xl hover:border-neutral-950/25 transition-all duration-300">
               

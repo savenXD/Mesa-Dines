@@ -67,12 +67,14 @@ export default function Home() {
 
   const faqData = [
     {
-      question: "How long does it take to set up?",
-      answer: "We get you up and running within 24–48 hours. Our onboarding team handles your entire menu upload, category mapping, and QR configuration for you.",
+      question: "Can we customize the branding?",
+      answer: "Absolutely. You can customize the color palette, upload your brand logo, adjust typography, and design your digital menus to match your restaurant's unique identity.",
       icon: (
         <svg className="w-5 h-5 text-[#2D3E24]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
+          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03456 19.176 5.12256 19.264 5.1613 19.3732C5.20005 19.4824 5.18342 19.5968 5.15017 19.8257L5.02188 20.7064C4.9458 21.2295 5.38575 21.6811 5.91262 21.6111L6.78652 21.495C7.02672 21.4632 7.14682 21.4473 7.2605 21.4883C7.37418 21.5293 7.46499 21.6214 7.64661 21.8055C8.83151 22.008 10.3892 22 12 22Z" />
+          <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
+          <circle cx="11.5" cy="7.5" r="1" fill="currentColor" />
+          <circle cx="16.5" cy="9.5" r="1" fill="currentColor" />
         </svg>
       )
     },
@@ -84,18 +86,6 @@ export default function Home() {
           <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
           <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="3" />
           <path d="M17 6L7 18M7 6l10 12" className="opacity-40" />
-        </svg>
-      )
-    },
-    {
-      question: "Can we customize the branding?",
-      answer: "Absolutely. You can customize the color palette, upload your brand logo, adjust typography, and design your digital menus to match your restaurant's unique identity.",
-      icon: (
-        <svg className="w-5 h-5 text-[#2D3E24]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03456 19.176 5.12256 19.264 5.1613 19.3732C5.20005 19.4824 5.18342 19.5968 5.15017 19.8257L5.02188 20.7064C4.9458 21.2295 5.38575 21.6811 5.91262 21.6111L6.78652 21.495C7.02672 21.4632 7.14682 21.4473 7.2605 21.4883C7.37418 21.5293 7.46499 21.6214 7.64661 21.8055C8.83151 22.008 10.3892 22 12 22Z" />
-          <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
-          <circle cx="11.5" cy="7.5" r="1" fill="currentColor" />
-          <circle cx="16.5" cy="9.5" r="1" fill="currentColor" />
         </svg>
       )
     },
@@ -1030,7 +1020,7 @@ export default function Home() {
   const premiumServices = [
     {
       title: "Google Review Booster",
-      price: "199",
+      price: "182",
       period: "month",
       desc: "Get more stars and rank higher on Google search results.",
       icon: (
@@ -1187,7 +1177,7 @@ export default function Home() {
 
       {/* HERO SECTION */}
       <main id="home" className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-10 pt-2 pb-12 md:pb-16 flex flex-col items-center flex-grow">
-        <div className="flex flex-col md:flex-row w-full gap-y-6 md:gap-x-10 lg:gap-x-14 items-center justify-center mt-6 md:mt-10">
+        <div className="flex flex-col md:flex-row w-full gap-y-6 md:gap-x-10 lg:gap-x-14 items-center justify-center mt-6 md:mt-10 md:-translate-y-[25px]">
           
           {/* Text Column: Heading, Subheading & CTA Buttons */}
           <div className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left flex-shrink-0">
@@ -1360,7 +1350,7 @@ export default function Home() {
 
               {/* Floating Badge — TOP RIGHT: Reliable */}
               <div
-                className="flex absolute top-[10%] right-[2%] items-center gap-1.5 md:gap-2.5 bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl px-2.5 py-1.5 md:px-4 md:py-3 pointer-events-none select-none"
+                className="flex absolute top-[12%] right-[8%] sm:right-[10%] md:right-[14%] items-center gap-1.5 md:gap-2.5 bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl px-2.5 py-1.5 md:px-4 md:py-3 pointer-events-none select-none"
                 style={{ animation: "heroFloat1 5s ease-in-out infinite", zIndex: 10 }}
               >
                 <div className="w-6 h-6 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-neutral-950 flex items-center justify-center flex-shrink-0">
@@ -1376,7 +1366,7 @@ export default function Home() {
 
               {/* Floating Badge — BOTTOM LEFT: Premium */}
               <div
-                className="flex absolute bottom-[10%] left-[2%] items-center gap-1.5 md:gap-2.5 bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl px-2.5 py-1.5 md:px-4 md:py-3 pointer-events-none select-none"
+                className="flex absolute bottom-[12%] left-[8%] sm:left-[10%] md:left-[14%] items-center gap-1.5 md:gap-2.5 bg-white rounded-xl md:rounded-2xl shadow-lg md:shadow-xl px-2.5 py-1.5 md:px-4 md:py-3 pointer-events-none select-none"
                 style={{ animation: "heroFloat2 5.5s ease-in-out infinite", zIndex: 10 }}
               >
                 <div className="w-6 h-6 md:w-9 md:h-9 rounded-lg md:rounded-xl bg-neutral-950 flex items-center justify-center flex-shrink-0">
@@ -1829,6 +1819,7 @@ export default function Home() {
             © 2026 Mesa Dines. All rights reserved.
           </span>
           <div className="flex items-center gap-4 sm:gap-6 flex-wrap justify-center text-neutral-500">
+            <Link href="/blog" className="text-white hover:text-neutral-300 transition-all cursor-pointer">Blog</Link>
             <Link href="/privacy-policy" className="hover:text-white transition-all cursor-pointer">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-white transition-all cursor-pointer">Terms of Service</Link>
             <Link href="/refund-policy" className="hover:text-white transition-all cursor-pointer">Refund Policy</Link>

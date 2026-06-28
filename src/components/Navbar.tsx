@@ -2,16 +2,31 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface NavbarProps {
-  handleBuyNowClick: (e: React.MouseEvent) => void;
+  handleBuyNowClick?: (e: React.MouseEvent) => void;
 }
 
 export default function Navbar({ handleBuyNowClick }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+
+  const handleCtaClick = (e: React.MouseEvent) => {
+    if (handleBuyNowClick) {
+      handleBuyNowClick(e);
+    } else {
+      e.preventDefault();
+      if (typeof window !== "undefined") {
+        window.location.href = "/#contact";
+      }
+    }
+  };
 
   const menuVariants = {
     closed: {
@@ -45,10 +60,13 @@ export default function Navbar({ handleBuyNowClick }: NavbarProps) {
     }),
   };
 
+  const navItems = ["Home", "How It Works", "Why Mesa", "Problems", "Pricing", "FAQ", "Blog", "Contact"];
+  const activeIdx = pathname.startsWith("/blog") ? 6 : (pathname === "/" ? 0 : null);
+  const pillIdx = hoveredIdx !== null ? hoveredIdx : activeIdx;
+
   return (
     <>
-      {/* NAVIGATION BAR */}
-      <header className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-10 py-7 flex items-center justify-between z-40 relative">
+      <header className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-10 py-7 flex items-center justify-between z-40 relative select-none">
         {/* Left Side: Claymorphic Logo Container */}
         <div className="bg-[#ffffff] rounded-[15px] py-0 px-3 shadow-clay-logo flex items-center justify-center h-[64px] md:h-[76px] min-w-[130px] md:min-w-[175px] overflow-hidden">
           {!logoError ? (
@@ -79,30 +97,43 @@ export default function Navbar({ handleBuyNowClick }: NavbarProps) {
 
         {/* Center: Desktop Navigation Links with sliding pill hover */}
         <div className="hidden md:flex items-center gap-1 bg-[#ffffff]/80 backdrop-blur-md rounded-[15px] p-1.5 shadow-clay-logo border border-white/40 h-[58px]">
-          {["Home", "How It Works", "Why Mesa", "Problems", "Pricing", "FAQ", "Contact"].map((item, idx) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-              onMouseEnter={() => setHoveredIdx(idx)}
-              onMouseLeave={() => setHoveredIdx(null)}
-              className="relative px-3.5 py-2 rounded-[12px] text-[13.5px] font-extrabold text-neutral-800 transition-colors duration-200 animate-none whitespace-nowrap"
-            >
-              <span className="relative z-10">{item}</span>
-              {hoveredIdx === idx && (
-                <motion.span
-                  layoutId="navHoverPill"
-                  className="absolute inset-0 bg-neutral-950/[0.04] rounded-[10px] shadow-[inset_1px_1px_2px_rgba(0,0,0,0.05),_inset_-1px_-1px_2px_rgba(255,255,255,0.8)]"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
-              )}
-            </a>
-          ))}
+          {navItems.map((item, idx) => {
+            const isBlog = item === "Blog";
+            const href = isBlog
+              ? "/blog"
+              : (isHomePage
+                  ? `#${item.toLowerCase().replace(/\s+/g, "-")}`
+                  : `/#${item.toLowerCase().replace(/\s+/g, "-")}`);
+            
+            const isPill = pillIdx === idx;
+            
+            return (
+              <Link
+                key={item}
+                href={href}
+                onMouseEnter={() => setHoveredIdx(idx)}
+                onMouseLeave={() => setHoveredIdx(null)}
+                className={`relative px-3.5 py-2 rounded-[10px] text-[13.5px] font-extrabold transition-colors duration-300 animate-none whitespace-nowrap z-10 ${
+                  isPill ? "text-white" : "text-neutral-500 hover:text-neutral-850"
+                }`}
+              >
+                <span className="relative z-10">{item}</span>
+                {isPill && (
+                  <motion.span
+                    layoutId="navHoverPill"
+                    className="absolute inset-0 rounded-[10px] -z-10 bg-neutral-950 shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+                    transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
         </div>
 
         {/* Right Side: Desktop CTA Button / Mobile Hamburger */}
         <div className="flex items-center gap-3">
           {/* Desktop CTA */}
-          <a href="#contact" onClick={handleBuyNowClick} className="hidden md:flex items-center justify-center gap-2 bg-neutral-950 text-white rounded-[15px] h-[58px] px-6 text-[15px] font-extrabold shadow-clay-button hover:bg-neutral-900 transition-all duration-200 active:scale-[0.97] cursor-pointer">
+          <a href="#contact" onClick={handleCtaClick} className="hidden md:flex items-center justify-center gap-2 bg-neutral-950 text-white rounded-[15px] h-[58px] px-6 text-[15px] font-extrabold shadow-clay-button hover:bg-neutral-900 transition-all duration-200 active:scale-[0.97] cursor-pointer">
             <span>Schedule a Call</span>
             <svg viewBox="0 0 24 24" className="w-[16px] h-[16px] stroke-current fill-none text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
@@ -152,18 +183,29 @@ export default function Navbar({ handleBuyNowClick }: NavbarProps) {
           >
             <div className="absolute inset-0 grid-mesh pointer-events-none -z-10" />
             <nav className="flex flex-col gap-4 text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-              {["Home", "How It Works", "Why Mesa", "Problems", "Pricing", "FAQ", "Contact"].map((item, idx) => (
-                <motion.a
-                  key={item}
-                  href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-                  variants={menuItemVariants}
-                  custom={idx}
-                  onClick={() => setMenuOpen(false)}
-                  className="hover:text-[#2D3E24] w-fit transition-colors duration-200"
-                >
-                  {item}
-                </motion.a>
-              ))}
+              {["Home", "How It Works", "Why Mesa", "Problems", "Pricing", "FAQ", "Blog", "Contact"].map((item, idx) => {
+                const isBlog = item === "Blog";
+                const href = isBlog
+                  ? "/blog"
+                  : (isHomePage
+                      ? `#${item.toLowerCase().replace(/\s+/g, "-")}`
+                      : `/#${item.toLowerCase().replace(/\s+/g, "-")}`);
+                return (
+                  <motion.div
+                    key={item}
+                    variants={menuItemVariants}
+                    custom={idx}
+                  >
+                    <Link
+                      href={href}
+                      onClick={() => setMenuOpen(false)}
+                      className="hover:text-[#2D3E24] w-fit transition-colors duration-200 block"
+                    >
+                      {item}
+                    </Link>
+                  </motion.div>
+                );
+              })}
             </nav>
             <motion.div
               variants={menuItemVariants}
@@ -174,7 +216,7 @@ export default function Navbar({ handleBuyNowClick }: NavbarProps) {
                 href="#contact"
                 onClick={(e) => {
                   setMenuOpen(false);
-                  handleBuyNowClick(e);
+                  handleCtaClick(e);
                 }}
                 className="flex items-center justify-center gap-3 border border-neutral-950 bg-transparent text-neutral-950 font-bold py-4 px-6 rounded-2xl hover:bg-neutral-900 hover:text-white transition-all duration-200"
               >

@@ -483,6 +483,16 @@ export default function WhyMesa() {
                       I mean, Why not?
                     </textPath>
                   </text>
+
+                  {/* Smile image pinned on top of the word "Why" */}
+                  <image 
+                    href="/smile.png" 
+                    x="1220" 
+                    y="130" 
+                    width="110" 
+                    height="110" 
+                    className="animate-float-slow"
+                  />
                 </svg>
               </div>
 

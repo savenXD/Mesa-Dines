@@ -8,12 +8,14 @@ export default function FAQAccordion() {
 
   const faqData = [
     {
-      question: "How long does it take to set up?",
-      answer: "We get you up and running within 24–48 hours. Our onboarding team handles your entire menu upload, category mapping, and QR configuration for you.",
+      question: "Can we customize the branding?",
+      answer: "Absolutely. You can customize the color palette, upload your brand logo, adjust typography, and design your digital menus to match your restaurant's unique identity.",
       icon: (
         <svg className="w-5 h-5 text-[#2D3E24]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
+          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03456 19.176 5.12256 19.264 5.1613 19.3732C5.20005 19.4824 5.18342 19.5968 5.15017 19.8257L5.02188 20.7064C4.9458 21.2295 5.38575 21.6811 5.91262 21.6111L6.78652 21.495C7.02672 21.4632 7.14682 21.4473 7.2605 21.4883C7.37418 21.5293 7.46499 21.6214 7.64661 21.8055C8.83151 22.008 10.3892 22 12 22Z" />
+          <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
+          <circle cx="11.5" cy="7.5" r="1" fill="currentColor" />
+          <circle cx="16.5" cy="9.5" r="1" fill="currentColor" />
         </svg>
       )
     },
@@ -25,18 +27,6 @@ export default function FAQAccordion() {
           <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
           <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="3" />
           <path d="M17 6L7 18M7 6l10 12" className="opacity-40" />
-        </svg>
-      )
-    },
-    {
-      question: "Can we customize the branding?",
-      answer: "Absolutely. You can customize the color palette, upload your brand logo, adjust typography, and design your digital menus to match your restaurant's unique identity.",
-      icon: (
-        <svg className="w-5 h-5 text-[#2D3E24]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.03456 19.176 5.12256 19.264 5.1613 19.3732C5.20005 19.4824 5.18342 19.5968 5.15017 19.8257L5.02188 20.7064C4.9458 21.2295 5.38575 21.6811 5.91262 21.6111L6.78652 21.495C7.02672 21.4632 7.14682 21.4473 7.2605 21.4883C7.37418 21.5293 7.46499 21.6214 7.64661 21.8055C8.83151 22.008 10.3892 22 12 22Z" />
-          <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
-          <circle cx="11.5" cy="7.5" r="1" fill="currentColor" />
-          <circle cx="16.5" cy="9.5" r="1" fill="currentColor" />
         </svg>
       )
     },
