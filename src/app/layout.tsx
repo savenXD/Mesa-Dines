@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://mesadines.com'),
   title: "Mesa Dines | Premium Cafe & Restaurant Tech",
   description: "Bringing 5-star Cafe and Restaurant Technology to food business owners at affordable prices.",
+  verification: {
+    google: 'im-XKzUKzrHbT6IR7TiMahFpEiKMAVtFOQFdiZ-uNvw',
+  },
   alternates: {
     canonical: '/',
   },
