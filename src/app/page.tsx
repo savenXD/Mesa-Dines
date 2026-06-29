@@ -11,6 +11,7 @@ import Navbar from "../components/Navbar";
 import HowItWorks from "../components/HowItWorks";
 import WhyMesa from "../components/WhyMesa";
 import { UpgradesSlider, FAQAccordion } from "../components/DynamicComponents";
+import QRGallery from "../components/QRGallery";
 import ContactForm from "../components/ContactForm";
 
 
@@ -902,11 +903,13 @@ export default function Home() {
   // Split heading text for staggered entry
   const headingWords = [
     { text: "Premium", line: 1 },
-    { text: "Cafe", line: 1 },
-    { text: "Tech", line: 1 },
-    { text: "at", line: 1 },
-    { text: "affordable", line: 2, underline: true },
-    { text: "prices", line: 2 }
+    { text: "Café", line: 1 },
+    { text: "&", line: 2 },
+    { text: "Restaurant", line: 2 },
+    { text: "Tech", line: 2 },
+    { text: "at", line: 3 },
+    { text: "affordable", line: 3, underline: true },
+    { text: "prices", line: 3 }
   ];
 
   // Animation variants
@@ -1188,9 +1191,9 @@ export default function Home() {
               animate="visible"
               className="flex flex-col items-center md:items-start text-center md:text-left w-full"
             >
-              {/* Line 1 */}
-              <h1 className="text-[clamp(15px,9.3vw,44px)] sm:text-[46px] md:text-[52px] lg:text-[56px] xl:text-[60px] font-black tracking-tight text-[#111111] leading-[1.12] w-full text-center md:text-left">
-                <span className="block w-full md:whitespace-nowrap text-center md:text-left">
+              {/* Line 1 — wraps naturally on all screens */}
+              <h1 className="text-[clamp(32px,9.5vw,60px)] sm:text-[48px] md:text-[52px] lg:text-[58px] xl:text-[64px] font-black tracking-tight text-[#111111] leading-[1.12] w-full text-center md:text-left">
+                <span className="block w-full text-center md:text-left">
                   {headingWords
                     .filter((w) => w.line === 1)
                     .map((w, idx, arr) => (
@@ -1206,9 +1209,27 @@ export default function Home() {
                 </span>
 
                 {/* Line 2 */}
-                <span className="block w-full md:whitespace-nowrap text-center md:text-left mt-0.5 sm:mt-1.5">
+                <span className="block w-full text-center md:text-left mt-0.5 sm:mt-1.5">
                   {headingWords
                     .filter((w) => w.line === 2)
+                    .map((w, idx, arr) => (
+                      <span key={idx} className="inline-block">
+                        <span className="relative overflow-visible inline-block px-[0.06em]">
+                          <span className="overflow-hidden inline-block px-[0.06em]">
+                            <motion.span variants={wordVariants} className="inline-block origin-bottom">
+                              {w.text}
+                            </motion.span>
+                          </span>
+                        </span>
+                        {idx < arr.length - 1 && " "}
+                      </span>
+                    ))}
+                </span>
+
+                {/* Line 3 — affordable (underlined) prices */}
+                <span className="block w-full text-center md:text-left mt-0.5 sm:mt-1.5">
+                  {headingWords
+                    .filter((w) => w.line === 3)
                     .map((w, idx, arr) => (
                       <span key={idx} className="inline-block">
                         <span className="relative overflow-visible inline-block px-[0.06em]">
@@ -1258,7 +1279,7 @@ export default function Home() {
               transition={{ delay: 0.8, duration: 0.6 }}
               className="text-neutral-500 font-extrabold text-[11.5px] sm:text-[13.5px] md:text-[15px] lg:text-[17px] leading-[1.35] mt-3 md:mt-5 max-w-xs sm:max-w-md md:max-w-md lg:max-w-xl tracking-wide text-center md:text-left mx-auto md:mx-0"
             >
-              Empower your food business with 5-star restaurant technology. Delight diners, automate tasks, and scale margins effortlessly.
+              QR-based ordering system for Indian cafés and restaurants. Reduce order errors, serve faster, and keep customers coming back. Affordable cafe tech, built for India 🇮🇳
             </motion.p>
 
             {/* CTA Buttons — desktop only (mobile version is below the image) */}
@@ -1782,6 +1803,9 @@ export default function Home() {
             </div>
 
           </div>
+
+          {/* QR GALLERY SECTION */}
+          <QRGallery />
 
           <UpgradesSlider handleBuyNowClick={handleBuyNowClick} />
 

@@ -13,7 +13,7 @@ const fontPrimary = Nunito({
 export const metadata: Metadata = {
   metadataBase: new URL('https://mesadines.com'),
   title: "Mesa Dines | Premium Cafe & Restaurant Tech",
-  description: "Bringing 5-star Cafe and Restaurant Technology to food business owners at affordable prices.",
+  description: "QR-based ordering system for Indian cafés and restaurants. Reduce order errors, serve faster, and keep customers coming back. Affordable cafe tech, built for India 🇮🇳",
   verification: {
     google: 'im-XKzUKzrHbT6IR7TiMahFpEiKMAVtFOQFdiZ-uNvw',
   },
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Mesa Dines | Premium Cafe & Restaurant Tech",
-    description: "Bringing 5-star Cafe and Restaurant Technology to food business owners at affordable prices.",
+    description: "QR-based ordering system for Indian cafés and restaurants. Reduce order errors, serve faster, and keep customers coming back. Affordable cafe tech, built for India 🇮🇳",
     url: 'https://mesadines.com',
     siteName: 'Mesa Dines',
     images: [
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: "Mesa Dines | Premium Cafe & Restaurant Tech",
-    description: "Bringing 5-star Cafe and Restaurant Technology to food business owners at affordable prices.",
+    description: "QR-based ordering system for Indian cafés and restaurants. Reduce order errors, serve faster, and keep customers coming back. Affordable cafe tech, built for India 🇮🇳",
     images: ['/og-image.png'],
   },
 }
