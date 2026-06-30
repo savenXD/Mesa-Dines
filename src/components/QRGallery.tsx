@@ -165,10 +165,8 @@ export default function QRGallery() {
   const [isDesktop, setIsDesktop] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
-
-  // Drag/swipe state (mobile only)
-  const dragStartX = useRef<number | null>(null);
-  const isDragging = useRef(false);
+  const interactionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSelfScrolling = useRef(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -177,6 +175,15 @@ export default function QRGallery() {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Delay autoplay after any user interaction
+  const registerUserInteraction = useCallback(() => {
+    setIsPaused(true);
+    if (interactionTimeoutRef.current) clearTimeout(interactionTimeoutRef.current);
+    interactionTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+    }, 10000); // 10s cooldown
   }, []);
 
   const goTo = useCallback((idx: number, customDirection?: number) => {
@@ -188,10 +195,21 @@ export default function QRGallery() {
     }
     setActiveIdx(clamped);
 
-    // Scroll mobile track
+    // Scroll mobile track natively and smoothly
     if (trackRef.current && window.innerWidth < 1024) {
-      const cardWidth = trackRef.current.scrollWidth / slides.length;
-      trackRef.current.scrollTo({ left: cardWidth * clamped, behavior: "smooth" });
+      const container = trackRef.current;
+      const child = container.children[clamped] as HTMLElement;
+      if (child) {
+        isSelfScrolling.current = true;
+        container.scrollTo({
+          left: child.offsetLeft - 16, // Match the padding offset of container
+          behavior: "smooth",
+        });
+        // Release scrolling block after smooth animation completes
+        setTimeout(() => {
+          isSelfScrolling.current = false;
+        }, 600);
+      }
     }
   }, [activeIdx]);
 
@@ -210,8 +228,18 @@ export default function QRGallery() {
         const next = (prev + 1) % slides.length;
         setDirection(1);
         if (trackRef.current && window.innerWidth < 1024) {
-          const cardWidth = trackRef.current.scrollWidth / slides.length;
-          trackRef.current.scrollTo({ left: cardWidth * next, behavior: "smooth" });
+          const container = trackRef.current;
+          const child = container.children[next] as HTMLElement;
+          if (child) {
+            isSelfScrolling.current = true;
+            container.scrollTo({
+              left: child.offsetLeft - 16,
+              behavior: "smooth",
+            });
+            setTimeout(() => {
+              isSelfScrolling.current = false;
+            }, 600);
+          }
         }
         return next;
       });
@@ -231,61 +259,49 @@ export default function QRGallery() {
     } else {
       stopTimer();
     }
-    return () => stopTimer();
+    return () => {
+      stopTimer();
+      if (interactionTimeoutRef.current) clearTimeout(interactionTimeoutRef.current);
+    };
   }, [isPaused, startTimer, stopTimer]);
 
-  // Sync active dot when user manually scrolls
+  // Sync active dot by finding which card is closest to the left edge of container
   const handleScroll = useCallback(() => {
-    if (!trackRef.current || window.innerWidth >= 1024) return;
-    const cardWidth = trackRef.current.scrollWidth / slides.length;
-    const idx = Math.round(trackRef.current.scrollLeft / cardWidth);
-    setActiveIdx(Math.max(0, Math.min(slides.length - 1, idx)));
+    if (!trackRef.current || window.innerWidth >= 1024 || isSelfScrolling.current) return;
+    const container = trackRef.current;
+    const children = container.children;
+    const containerLeft = container.getBoundingClientRect().left;
+
+    let closestIdx = 0;
+    let minDistance = Infinity;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      const childLeft = child.getBoundingClientRect().left;
+      const distance = Math.abs(childLeft - containerLeft - 16); // 16px is left padding
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIdx = i;
+      }
+    }
+
+    setActiveIdx(closestIdx);
   }, []);
 
-  // Mouse drag (mobile/tablet only)
-  const onMouseDown = (e: React.MouseEvent) => {
-    if (window.innerWidth >= 1024) return;
-    dragStartX.current = e.clientX;
-    isDragging.current = false;
-  };
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (window.innerWidth >= 1024 || dragStartX.current === null) return;
-    if (Math.abs(e.clientX - dragStartX.current) > 5) isDragging.current = true;
-  };
-  const onMouseUp = (e: React.MouseEvent) => {
-    if (window.innerWidth >= 1024 || dragStartX.current === null) return;
-    const diff = dragStartX.current - e.clientX;
-    dragStartX.current = null;
-    if (Math.abs(diff) > 40) {
-      setIsPaused(true);
-      goTo(activeIdx + (diff > 0 ? 1 : -1));
-    }
-    isDragging.current = false;
-  };
-
-  // Touch drag (mobile/tablet only)
-  const onTouchStart = (e: React.TouchEvent) => {
-    dragStartX.current = e.touches[0].clientX;
-    setIsPaused(true);
-  };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (dragStartX.current === null) return;
-    const diff = dragStartX.current - e.changedTouches[0].clientX;
-    dragStartX.current = null;
-    if (Math.abs(diff) > 40) {
-      goTo(activeIdx + (diff > 0 ? 1 : -1));
-    }
-  };
-
   const handleDotClick = (idx: number) => {
-    setIsPaused(true);
+    registerUserInteraction();
     goTo(idx, idx > activeIdx ? 1 : -1);
   };
 
   const handleCardAreaClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('a')) return;
-    setIsPaused(true);
+    registerUserInteraction();
     handleNext();
+  };
+
+  // Pause autoplay on touch start, resume after cooldown
+  const handleTouchStart = () => {
+    registerUserInteraction();
   };
 
   const activeSlide = slides[activeIdx];
@@ -423,10 +439,10 @@ export default function QRGallery() {
       </div>
 
 
-      {/* ==================== MOBILE/TABLET LAYOUT (swipeable grid track) ==================== */}
+      {/* ==================== MOBILE/TABLET LAYOUT (native swipeable snap track) ==================== */}
       <div
         ref={trackRef}
-        className="lg:hidden no-scrollbar w-full overflow-x-auto pb-2 select-none"
+        className="lg:hidden no-scrollbar w-full overflow-x-auto pb-2"
         style={{
           display: isDesktop ? "none" : "grid",
           gridAutoFlow: "column",
@@ -435,15 +451,9 @@ export default function QRGallery() {
           padding: "0 16px 8px",
           scrollSnapType: "x mandatory",
           scrollbarWidth: "none",
-          cursor: isDragging.current ? "grabbing" : "grab",
         }}
         onScroll={handleScroll}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
+        onTouchStart={handleTouchStart}
       >
         {slides.map((slide, i) => (
           <div
