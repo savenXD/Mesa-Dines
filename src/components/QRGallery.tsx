@@ -272,7 +272,7 @@ export default function QRGallery() {
       {/* Section Header */}
       <div className="flex flex-col items-center text-center w-full max-w-xl mb-10 px-6">
         <span className="text-neutral-400 font-black text-xs uppercase tracking-widest mb-1.5">
-          Included with ₹999
+          PREMIUM STANDS
         </span>
         <h2 className="text-[28px] sm:text-[36px] md:text-[42px] font-black tracking-tight text-neutral-950 leading-tight relative overflow-visible inline-block">
           <span className="relative inline-block">
@@ -285,7 +285,7 @@ export default function QRGallery() {
           </span>
         </h2>
         <p className="text-neutral-500 font-extrabold text-[12.5px] sm:text-[13.5px] leading-relaxed mt-5 tracking-wide">
-          Every plan comes with a physical QR stand. Pick the style that fits your space.
+          Select the perfect tabletop companion to match your restaurant's design and vibe.
         </p>
       </div>
 
