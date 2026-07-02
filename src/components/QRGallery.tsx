@@ -162,8 +162,11 @@ export default function QRGallery() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [direction, setDirection] = useState(0); // 1 for next, -1 for prev
   const [isPaused, setIsPaused] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
   const interactionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -173,6 +176,26 @@ export default function QRGallery() {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Monitor visibility in viewport
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+        if (entry.isIntersecting) {
+          // Reset to first slide (qrMain) when user scrolls down to this section
+          setActiveIdx(0);
+        }
+      },
+      { threshold: 0.15 } // Trigger when 15% of section is visible
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   // Cooldown timer to prevent autoplay yanking while interacting
@@ -218,7 +241,8 @@ export default function QRGallery() {
   }, []);
 
   useEffect(() => {
-    if (!isPaused) {
+    // Only run autoplay timer if section is visible to user
+    if (isVisible && !isPaused) {
       startTimer();
     } else {
       stopTimer();
@@ -227,7 +251,7 @@ export default function QRGallery() {
       stopTimer();
       if (interactionTimeoutRef.current) clearTimeout(interactionTimeoutRef.current);
     };
-  }, [isPaused, startTimer, stopTimer]);
+  }, [isVisible, isPaused, startTimer, stopTimer]);
 
   const handleDotClick = (idx: number) => {
     registerUserInteraction();
@@ -243,7 +267,7 @@ export default function QRGallery() {
   const activeSlide = slides[activeIdx];
 
   return (
-    <section className="w-full py-16 flex flex-col items-center">
+    <section ref={sectionRef} className="w-full py-16 flex flex-col items-center">
 
       {/* Section Header */}
       <div className="flex flex-col items-center text-center w-full max-w-xl mb-10 px-6">
@@ -377,7 +401,7 @@ export default function QRGallery() {
 
       {/* ==================== MOBILE/TABLET LAYOUT (strictly moves exactly 1 card, swipe-to-transition) ==================== */}
       <div 
-        className="lg:hidden w-full px-6 flex justify-center items-center relative overflow-hidden min-h-[510px] sm:min-h-[530px]"
+        className="lg:hidden w-full px-6 flex justify-center items-center relative overflow-hidden min-h-[640px] xs:min-h-[660px] sm:min-h-[690px]"
         onTouchStart={registerUserInteraction}
       >
         <AnimatePresence initial={false} custom={direction} mode="popLayout">
