@@ -17,7 +17,7 @@ interface QRSlide {
 
 const slides: QRSlide[] = [
   {
-    image: "/qr1.png",
+    image: "/qrMain.png",
     title: "Premium Table Plaque",
     subtitle: "Clean & Minimalist",
     features: [
