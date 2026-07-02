@@ -164,9 +164,7 @@ export default function QRGallery() {
   const [isPaused, setIsPaused] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
   const interactionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isSelfScrolling = useRef(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -177,13 +175,13 @@ export default function QRGallery() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Delay autoplay after any user interaction
+  // Cooldown timer to prevent autoplay yanking while interacting
   const registerUserInteraction = useCallback(() => {
     setIsPaused(true);
     if (interactionTimeoutRef.current) clearTimeout(interactionTimeoutRef.current);
     interactionTimeoutRef.current = setTimeout(() => {
       setIsPaused(false);
-    }, 10000); // 10s cooldown
+    }, 10000);
   }, []);
 
   const goTo = useCallback((idx: number, customDirection?: number) => {
@@ -194,23 +192,6 @@ export default function QRGallery() {
       setDirection(clamped > activeIdx ? 1 : -1);
     }
     setActiveIdx(clamped);
-
-    // Scroll mobile track natively and smoothly
-    if (trackRef.current && window.innerWidth < 1024) {
-      const container = trackRef.current;
-      const child = container.children[clamped] as HTMLElement;
-      if (child) {
-        isSelfScrolling.current = true;
-        container.scrollTo({
-          left: child.offsetLeft - 16, // Match the padding offset of container
-          behavior: "smooth",
-        });
-        // Release scrolling block after smooth animation completes
-        setTimeout(() => {
-          isSelfScrolling.current = false;
-        }, 600);
-      }
-    }
   }, [activeIdx]);
 
   const handleNext = useCallback(() => {
@@ -224,25 +205,8 @@ export default function QRGallery() {
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setActiveIdx((prev) => {
-        const next = (prev + 1) % slides.length;
-        setDirection(1);
-        if (trackRef.current && window.innerWidth < 1024) {
-          const container = trackRef.current;
-          const child = container.children[next] as HTMLElement;
-          if (child) {
-            isSelfScrolling.current = true;
-            container.scrollTo({
-              left: child.offsetLeft - 16,
-              behavior: "smooth",
-            });
-            setTimeout(() => {
-              isSelfScrolling.current = false;
-            }, 600);
-          }
-        }
-        return next;
-      });
+      setDirection(1);
+      setActiveIdx((prev) => (prev + 1) % slides.length);
     }, AUTO_PLAY_INTERVAL);
   }, []);
 
@@ -265,29 +229,6 @@ export default function QRGallery() {
     };
   }, [isPaused, startTimer, stopTimer]);
 
-  // Sync active dot by finding which card is closest to the left edge of container
-  const handleScroll = useCallback(() => {
-    if (!trackRef.current || window.innerWidth >= 1024 || isSelfScrolling.current) return;
-    const container = trackRef.current;
-    const children = container.children;
-    const containerLeft = container.getBoundingClientRect().left;
-
-    let closestIdx = 0;
-    let minDistance = Infinity;
-
-    for (let i = 0; i < children.length; i++) {
-      const child = children[i];
-      const childLeft = child.getBoundingClientRect().left;
-      const distance = Math.abs(childLeft - containerLeft - 16); // 16px is left padding
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestIdx = i;
-      }
-    }
-
-    setActiveIdx(closestIdx);
-  }, []);
-
   const handleDotClick = (idx: number) => {
     registerUserInteraction();
     goTo(idx, idx > activeIdx ? 1 : -1);
@@ -297,11 +238,6 @@ export default function QRGallery() {
     if ((e.target as HTMLElement).closest('a')) return;
     registerUserInteraction();
     handleNext();
-  };
-
-  // Pause autoplay on touch start, resume after cooldown
-  const handleTouchStart = () => {
-    registerUserInteraction();
   };
 
   const activeSlide = slides[activeIdx];
@@ -439,88 +375,98 @@ export default function QRGallery() {
       </div>
 
 
-      {/* ==================== MOBILE/TABLET LAYOUT (native swipeable snap track) ==================== */}
-      <div
-        ref={trackRef}
-        className="lg:hidden no-scrollbar w-full overflow-x-auto pb-2"
-        style={{
-          display: isDesktop ? "none" : "grid",
-          gridAutoFlow: "column",
-          gridAutoColumns: "min(85vw, 440px)",
-          gap: "16px",
-          padding: "0 16px 8px",
-          scrollSnapType: "x mandatory",
-          scrollbarWidth: "none",
-        }}
-        onScroll={handleScroll}
-        onTouchStart={handleTouchStart}
+      {/* ==================== MOBILE/TABLET LAYOUT (strictly moves exactly 1 card, swipe-to-transition) ==================== */}
+      <div 
+        className="lg:hidden w-full px-6 flex justify-center items-center relative overflow-hidden min-h-[510px] sm:min-h-[530px]"
+        onTouchStart={registerUserInteraction}
       >
-        {slides.map((slide, i) => (
-          <div
-            key={i}
-            style={{ scrollSnapAlign: "start" }}
+        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+          <motion.div
+            key={activeIdx}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{
+              x: { type: "spring", stiffness: 260, damping: 28 },
+              opacity: { duration: 0.25 },
+            }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.6}
+            onDragEnd={(e, info) => {
+              const swipeThreshold = 50;
+              if (info.offset.x < -swipeThreshold) {
+                registerUserInteraction();
+                handleNext();
+              } else if (info.offset.x > swipeThreshold) {
+                registerUserInteraction();
+                handlePrev();
+              }
+            }}
+            className="absolute w-full max-w-[340px] sm:max-w-[380px] border border-neutral-950/12 rounded-[28px] bg-white shadow-xl shadow-black/5 flex flex-col overflow-hidden cursor-grab active:cursor-grabbing select-none"
           >
-            <div className="w-full h-full border border-neutral-950/12 rounded-[28px] bg-white shadow-xl shadow-black/5 flex flex-col overflow-hidden">
-              <div className="p-3 pb-0">
-                <div className="w-full aspect-square relative rounded-[20px] overflow-hidden border border-neutral-100 shadow-inner">
-                  <Image
-                    src={slide.image}
-                    alt={slide.title}
-                    fill
-                    className="object-cover"
-                    priority={i === 0}
-                    sizes="440px"
-                    draggable={false}
-                  />
-                </div>
-              </div>
-
-              <div className="px-5 pt-5 pb-5 flex flex-col gap-4 flex-1">
-                <div>
-                  <h3 className="text-neutral-900 text-[17px] font-black tracking-tight leading-tight">
-                    {slide.title}
-                  </h3>
-                  <p className="text-neutral-400 text-[10.5px] font-black uppercase tracking-widest mt-1">
-                    {slide.subtitle}
-                  </p>
-                </div>
-
-                {slide.isCustom ? (
-                  <p className="text-neutral-500 font-extrabold text-[11.5px] leading-relaxed">
-                    {slide.customPara}
-                  </p>
-                ) : (
-                  <div className="flex flex-col gap-2.5">
-                    {slide.features?.map((feat, fIdx) => (
-                      <div key={fIdx} className="flex items-start gap-2.5">
-                        {feat.icon}
-                        <span className="text-[11.5px] font-extrabold text-neutral-600 tracking-wide leading-tight">
-                          {feat.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <a
-                  href="#contact"
-                  className="w-full mt-auto flex items-center justify-between bg-neutral-950 hover:bg-neutral-800 text-white font-extrabold text-xs tracking-wider uppercase px-5 py-4 rounded-2xl transition-all duration-300 group shadow-lg shadow-black/10 cursor-pointer"
-                  onMouseDown={(e) => e.stopPropagation()}
-                >
-                  <span>Contact Seller</span>
-                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                      <polyline points="12 5 19 12 12 19" />
-                    </svg>
-                  </div>
-                </a>
+            {/* Image with white border extrusion */}
+            <div className="p-3 pb-0">
+              <div className="w-full aspect-square relative rounded-[20px] overflow-hidden border border-neutral-100 shadow-inner">
+                <Image
+                  src={activeSlide.image}
+                  alt={activeSlide.title}
+                  fill
+                  className="object-cover pointer-events-none select-none"
+                  sizes="380px"
+                  draggable={false}
+                  priority
+                />
               </div>
             </div>
-          </div>
-        ))}
-      </div>
 
+            {/* Mobile Card Content */}
+            <div className="px-5 pt-5 pb-5 flex flex-col gap-4 flex-1">
+              <div>
+                <h3 className="text-neutral-900 text-[17px] font-black tracking-tight leading-tight">
+                  {activeSlide.title}
+                </h3>
+                <p className="text-neutral-400 text-[10.5px] font-black uppercase tracking-widest mt-1">
+                  {activeSlide.subtitle}
+                </p>
+              </div>
+
+              {activeSlide.isCustom ? (
+                <p className="text-neutral-500 font-extrabold text-[11.5px] leading-relaxed">
+                  {activeSlide.customPara}
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {activeSlide.features?.map((feat, fIdx) => (
+                    <div key={fIdx} className="flex items-start gap-2.5">
+                      {feat.icon}
+                      <span className="text-[11.5px] font-extrabold text-neutral-600 tracking-wide leading-tight">
+                        {feat.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Contact Seller Button */}
+              <a
+                href="#contact"
+                className="w-full mt-auto flex items-center justify-between bg-neutral-950 hover:bg-neutral-800 text-white font-extrabold text-xs tracking-wider uppercase px-5 py-4 rounded-2xl transition-all duration-300 group shadow-lg shadow-black/10 cursor-pointer"
+              >
+                <span>Contact Seller</span>
+                <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </div>
+              </a>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
       {/* Dots (visible underneath, on both mobile & desktop) */}
       <div className="flex items-center justify-center gap-2 mt-6">
